@@ -86,8 +86,8 @@
     geminiApiKey: savedGeminiKey,
     cozeBotId: savedCozeBotId,
     cozeApiToken: savedCozeToken,
-    supabaseUrl: localStorage.getItem("logimentor_supabase_url") || "",
-    supabaseAnonKey: localStorage.getItem("logimentor_supabase_anon_key") || "",
+    supabaseUrl: localStorage.getItem("logimentor_supabase_url") || "https://gcamnevqiwbdoqkfwexi.supabase.co",
+    supabaseAnonKey: localStorage.getItem("logimentor_supabase_anon_key") || "sb_publishable_LhfjnyQxP1WSSYOlx2-LPg_Lt32C04n",
     cloudTeacherSessions: [],
     isCloudConnected: false,
     studentProfile: (() => {

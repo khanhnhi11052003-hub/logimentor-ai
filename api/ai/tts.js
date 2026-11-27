@@ -119,81 +119,89 @@ export default async function handler(req, res) {
     const fullPrompt = `${stylePrefix}: ${rawText}`;
 
     const candidateModels = [
-      "gemini-2.5-flash-preview-tts",
-      "gemini-3.8-flash-tts",
       "gemini-3.8-flash-lite-tts",
+      "gemini-3.8-flash-tts",
+      "gemini-2.5-flash-preview-tts",
       "gemini-2.5-flash-tts"
     ];
     let lastStatus = 500;
     let lastErrorText = "";
 
     for (const modelName of candidateModels) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-      const resp = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: fullPrompt }]
-            }
-          ],
-          generationConfig: {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+        const resp = await fetch(endpoint, {
+          method: "POST",
+          signal: AbortSignal.timeout(12000),
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: fullPrompt }]
+              }
+            ],
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName
+                  }
                 }
               }
             }
-          }
-        })
-      });
+          })
+        });
 
-      if (!resp.ok) {
-        lastStatus = resp.status;
-        lastErrorText = await resp.text();
-        if (resp.status === 401 || resp.status === 403) break;
-        continue;
-      }
+        if (!resp.ok) {
+          lastStatus = resp.status;
+          lastErrorText = await resp.text();
+          if (resp.status === 401 || resp.status === 403) break;
+          continue;
+        }
 
-      const data = await resp.json();
-      const audioPart = (data?.candidates?.[0]?.content?.parts || []).find(
-        p => p.inlineData && p.inlineData.data
-      );
+        const data = await resp.json();
+        const audioPart = (data?.candidates?.[0]?.content?.parts || []).find(
+          p => p.inlineData && p.inlineData.data
+        );
 
-      if (!audioPart) {
-        lastStatus = 502;
-        lastErrorText = "Gemini TTS response did not contain audio inlineData";
-        continue;
-      }
+        if (!audioPart) {
+          lastStatus = 502;
+          lastErrorText = "Gemini TTS response did not contain audio inlineData";
+          continue;
+        }
 
-      const rawAudioBytes = Buffer.from(audioPart.inlineData.data, "base64");
-      const mimeType = String(audioPart.inlineData.mimeType || "audio/L16;rate=24000").toLowerCase();
+        const rawAudioBytes = Buffer.from(audioPart.inlineData.data, "base64");
+        const mimeType = String(audioPart.inlineData.mimeType || "audio/L16;rate=24000").toLowerCase();
 
-      if (
-        mimeType.includes("wav") ||
-        mimeType.includes("mpeg") ||
-        mimeType.includes("mp3") ||
-        mimeType.includes("ogg")
-      ) {
-        res.setHeader("Content-Type", audioPart.inlineData.mimeType);
+        if (
+          mimeType.includes("wav") ||
+          mimeType.includes("mpeg") ||
+          mimeType.includes("mp3") ||
+          mimeType.includes("ogg")
+        ) {
+          res.setHeader("Content-Type", audioPart.inlineData.mimeType);
+          res.setHeader("X-TTS-Model", modelName);
+          res.setHeader("Cache-Control", "public, max-age=3600");
+          return res.status(200).send(rawAudioBytes);
+        }
+
+        const rateMatch = mimeType.match(/rate=(\d+)/);
+        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+        const wavBuffer = pcm16ToWavBuffer(rawAudioBytes, sampleRate, 1);
+
+        res.setHeader("Content-Type", "audio/wav");
+        res.setHeader("X-Gemini-Voice", voiceName);
+        res.setHeader("X-TTS-Model", modelName);
         res.setHeader("Cache-Control", "public, max-age=3600");
-        return res.status(200).send(rawAudioBytes);
+        return res.status(200).send(wavBuffer);
+      } catch (loopErr) {
+        lastErrorText = loopErr?.message || String(loopErr);
+        continue;
       }
-
-      const rateMatch = mimeType.match(/rate=(\d+)/);
-      const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
-      const wavBuffer = pcm16ToWavBuffer(rawAudioBytes, sampleRate, 1);
-
-      res.setHeader("Content-Type", "audio/wav");
-      res.setHeader("X-Gemini-Voice", voiceName);
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      return res.status(200).send(wavBuffer);
     }
 
     return res.status(lastStatus).json({

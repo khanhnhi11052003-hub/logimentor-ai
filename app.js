@@ -661,6 +661,34 @@
     if (el.qsStudentEmail) el.qsStudentEmail.value = prof.email || "";
     if (el.qsClassCode) el.qsClassCode.value = prof.classCode || "LOGI-K22A";
     if (el.quickStartModal) el.quickStartModal.classList.add("open");
+    prefetchInitialQuestionFromModal();
+  }
+
+  function prefetchInitialQuestionFromModal() {
+    if (state.ttsEngine !== "gemini_studio" || !hasGeminiCapability()) return;
+    const track = getActiveTrack();
+    if (!track || !track.questions || !track.questions.length) return;
+    const caseIdx = track.questions.findIndex(q => Boolean(q.case_study_board));
+    const qIdx = state.startMode === "case_first" && caseIdx !== -1 ? caseIdx : 0;
+    const q = track.questions[qIdx];
+    if (!q) return;
+
+    const isEn = state.selectedLang === "en";
+    const mentor = getActiveMentor();
+    const qPrompt = isEn ? q.question_text_en : q.spoken_vi || q.question_text;
+    const rawSpoken = isEn
+      ? `Hello! I am ${mentor.spokenNameEn || mentor.nameEn}. Welcome to your ${track.nameEn} interview practice. Let's begin with Question ${qIdx + 1}. ${qPrompt}`
+      : adaptMentorToneByRegion(
+          `Chào bạn! Mình là ${mentor.spokenNameVi || mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.spokenNameVi || track.name} nhé. Câu hỏi số ${qIdx + 1} dành cho bạn: ${qPrompt}`
+        );
+
+    const prepared = prepareCleanSpokenScript(rawSpoken, state.selectedLang);
+    fetchGeminiStudioAudioUrl(
+      prepared,
+      state.selectedLang,
+      state.selectedLevel,
+      state.studioVoice
+    ).catch(() => {});
   }
 
   // ==================== TRUE BILINGUAL VI/EN NEURAL VOICE ENGINE ====================
@@ -1381,7 +1409,7 @@
       }
     };
 
-    // ƯU TIÊN SỐ 1: GEMINI 2.5 STUDIO NEURAL TTS (Giọng người thật giàu cảm xúc, đọc mượt cả đoạn 24kHz WAV)
+    // ƯU TIÊN SỐ 1: GEMINI STUDIO NEURAL TTS (Giọng người thật 24kHz WAV, phát nối song song 2 phần nếu câu dài)
     if (state.ttsEngine === "gemini_studio" && hasGeminiCapability()) {
       setMentorStageVisual(
         "ai_asking",
@@ -1391,36 +1419,75 @@
         true
       );
 
-      const studioAudioUrl = await fetchGeminiStudioAudioUrl(
-        preparedScript,
+      const voiceName = resolveStudioVoiceName(state.selectedLevel, state.studioVoice);
+      const fullCacheKey = `${lang}|${voiceName}|${preparedScript}`;
+      const isAlreadyCached = geminiTtsBlobCache.has(fullCacheKey);
+
+      // Nếu chưa có sẵn trong cache và câu dài > 160 ký tự: tách đôi tại câu đầu tiên & tải song song
+      // -> Câu mở đầu ngắn phát ngay lập tức trong khi đoạn sau tải ngầm song song!
+      let part1 = preparedScript;
+      let part2 = "";
+      if (!isAlreadyCached && preparedScript.length > 160) {
+        const splitMatch = preparedScript.slice(35, 175).match(/[.!?]\s+/);
+        if (splitMatch && splitMatch.index !== undefined) {
+          const cutIdx = 35 + splitMatch.index + splitMatch[0].length;
+          const head = preparedScript.slice(0, cutIdx).trim();
+          const tail = preparedScript.slice(cutIdx).trim();
+          if (head.length >= 25 && tail.length >= 30) {
+            part1 = head;
+            part2 = tail;
+          }
+        }
+      }
+
+      const part1Promise = fetchGeminiStudioAudioUrl(
+        part1,
         lang,
         state.selectedLevel,
         state.studioVoice
       );
+      const part2Promise = part2
+        ? fetchGeminiStudioAudioUrl(part2, lang, state.selectedLevel, state.studioVoice)
+        : Promise.resolve(null);
+
+      const studioAudioUrl1 = await part1Promise;
       if (myToken !== speechTokenCounter) return;
 
-      if (studioAudioUrl) {
-        const audio = new Audio(studioAudioUrl);
-        audio.playbackRate = Math.max(0.88, Math.min(1.15, userRate));
-        activeAudioEl = audio;
-        startBargeInMonitor();
+      if (studioAudioUrl1) {
+        const playStudioAudioUrl = url =>
+          new Promise((resolve, reject) => {
+            const audio = new Audio(url);
+            audio.playbackRate = Math.max(0.88, Math.min(1.15, userRate));
+            activeAudioEl = audio;
+            audio.onended = () => resolve(true);
+            audio.onerror = () => reject(new Error("Audio playback error"));
+            audio.play().catch(reject);
+          });
 
+        startBargeInMonitor();
         setMentorStageVisual(
           "ai_asking",
           lang === "en"
             ? "🎙️ AI Mentor is speaking (Studio Neural Voice)..."
-            : "🎙️ AI Mentor đang trao đổi trực tiếp (Giọng Gemini 2.5 Studio)...",
+            : "🎙️ AI Mentor đang trao đổi trực tiếp (Giọng Gemini Studio)...",
           true
         );
 
-        audio.onended = () => {
+        try {
+          await playStudioAudioUrl(studioAudioUrl1);
           if (myToken !== speechTokenCounter) return;
+
+          if (part2) {
+            const studioAudioUrl2 = await part2Promise;
+            if (myToken !== speechTokenCounter) return;
+            if (studioAudioUrl2) {
+              await playStudioAudioUrl(studioAudioUrl2);
+              if (myToken !== speechTokenCounter) return;
+            }
+          }
+
           state.spokenClausesSoFar = [preparedScript];
           finishSpeaking();
-        };
-
-        try {
-          await audio.play();
           return;
         } catch (_) {
           // Nếu trình duyệt chặn hoặc lỗi phát, chuyển mượt xuống giọng dự phòng bên dưới
@@ -4051,13 +4118,22 @@ QUY TẮC:
     };
 
     bindSegGroup(el.qsLevelGroup, "data-level", val => {
-      if (val) state.selectedLevel = val;
+      if (val) {
+        state.selectedLevel = val;
+        prefetchInitialQuestionFromModal();
+      }
     });
     bindSegGroup(el.qsLangGroup, "data-lang", val => {
-      if (val) state.selectedLang = val;
+      if (val) {
+        state.selectedLang = val;
+        prefetchInitialQuestionFromModal();
+      }
     });
     bindSegGroup(el.qsStartModeGroup, "data-start-mode", val => {
-      if (val) state.startMode = val;
+      if (val) {
+        state.startMode = val;
+        prefetchInitialQuestionFromModal();
+      }
     });
 
     [el.btnCloseQuickStart, el.btnCancelQuickStart].forEach(b => {

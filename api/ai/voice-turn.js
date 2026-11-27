@@ -131,7 +131,8 @@ NHIỆM VỤ:
     });
 
     const candidateConfigs = [
-      { model: "gemini-3.8-flash", thinkingConfig: { thinkingLevel: "MINIMAL" } },
+      { model: "gemini-3.8-flash", thinkingConfig: { thinkingLevel: "LOW" } },
+      { model: "gemini-3.5-flash-lite" },
       { model: "gemini-3.8-flash" }
     ];
     let lastErr = "";

@@ -120,8 +120,9 @@ export default async function handler(req, res) {
 
     const candidateModels = [
       "gemini-2.5-flash-preview-tts",
-      "gemini-2.5-flash-tts",
-      "gemini-3.8-flash-tts"
+      "gemini-3.8-flash-tts",
+      "gemini-3.8-flash-lite-tts",
+      "gemini-2.5-flash-tts"
     ];
     let lastStatus = 500;
     let lastErrorText = "";

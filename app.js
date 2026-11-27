@@ -647,17 +647,26 @@
       voices.find(v => v.lang.toLowerCase().startsWith("en-us") && !isLegacyOfflineSapi(v)) ||
       voices.find(v => v.lang.toLowerCase().startsWith("en") && !isLegacyOfflineSapi(v));
 
-    // 3. Bất kỳ giọng vi-VN tốt nào không nằm trong danh sách SAPI5 lỗi, hoặc fallback giọng vi-VN mặc định của máy
+    // 3. Giọng neural khác (như Apple Linh trên macOS/iOS); tránh dùng Microsoft An SAPI5 cũ kỹ khi đang chạy web online (vì đã có /api/tts mượt hơn nhiều)
+    const isOnlineHttp =
+      window.location.protocol === "http:" || window.location.protocol === "https:";
     const cleanOtherVi = voices.find(
       v => v.lang.toLowerCase().startsWith("vi") && !isLegacyOfflineSapi(v)
     );
-    const anyViFallback = voices.find(v => v.lang.toLowerCase().startsWith("vi"));
-    const anyEnFallback = voices.find(v => v.lang.toLowerCase().startsWith("en"));
+    const cleanOtherEn = voices.find(
+      v => v.lang.toLowerCase().startsWith("en") && !isLegacyOfflineSapi(v)
+    );
+    const anyViFallback = isOnlineHttp
+      ? null
+      : voices.find(v => v.lang.toLowerCase().startsWith("vi"));
+    const anyEnFallback = isOnlineHttp
+      ? null
+      : voices.find(v => v.lang.toLowerCase().startsWith("en"));
 
     return {
       multilingualViVoice: azureViNatural || null,
       viVoice: azureViNatural || googleVi || cleanOtherVi || anyViFallback || null,
-      enVoice: azureEnNatural || googleEn || anyEnFallback || null
+      enVoice: azureEnNatural || googleEn || cleanOtherEn || anyEnFallback || null
     };
   }
 
@@ -677,11 +686,8 @@
   }
 
   /**
-   * Tiền xử lý văn bản trước khi đọc (Chống 100% lỗi đọc sai số tiền, ký hiệu toán học và dính chữ):
-   * - Xóa dấu phẩy ngăn cách hàng nghìn kiểu Anh (1,150 -> 1150) để tiếng Việt không đọc thành "một phẩy một năm không"
-   * - Đổi >=, <=, $, 02x40'HC, giờ giấc 06:00 – 09:00, ngày Sale 11/11 sang lời nói tự nhiên
-   * - Biến các từ viết tắt đánh vần (WMS -> W M S, SKU -> S K U, KPI -> K P I) để giọng Anh đọc rõ từng chữ cái
-   * - Thêm dấu chấm nghỉ hơi hợp lý tại các dấu hai chấm, gạch ngang và mục đánh số (1), (2), (3).
+   * Tiền xử lý văn bản trước khi đọc (Tách biệt tuyệt đối Tiếng Việt 100% và Tiếng Anh 100%,
+   * loại bỏ hoàn toàn hiện tượng đọc lẫn lộn Việt – Anh gây buồn cười):
    */
   function prepareCleanSpokenScript(rawText, lang) {
     if (!rawText) return "";
@@ -692,14 +698,20 @@
 
     if (lang === "en") {
       return s
+        .replace(/(\d),(?=\d{3}\b)/g, "$1")
+        .replace(/(\d),(?=\d{3})/g, "$1")
         .replace(/02x40'HC/gi, "two 40-foot High Cube containers")
         .replace(/40'HC/gi, "40-foot High Cube")
         .replace(/>=\s*(\d+(?:\.\d+)?%?)/g, "at least $1")
-        .replace(/<=\s*(\d[\d,.]*)/g, "at most $1")
+        .replace(/<=\s*(\d[\d,.]*%?)/g, "at most $1")
+        .replace(/>\s*(\d+(?:\.\d+)?)T\b/gi, "over $1 tons")
+        .replace(/\bHCMC\b/g, "Ho Chi Minh City")
+        .replace(/\bVND\b/g, "Vietnamese Dong")
         .replace(/\(1\)/g, ". First, ")
         .replace(/\(2\)/g, ". Second, ")
         .replace(/\(3\)/g, ". Third, ")
         .replace(/\bB\/L\b/g, "Bill of Lading")
+        .replace(/\bC\/O Form E\b/gi, "Certificate of Origin Form E")
         .replace(/\bC\/O\b/g, "Certificate of Origin")
         .replace(/\bWMS\b/g, "W M S")
         .replace(/\bTMS\b/g, "T M S")
@@ -709,35 +721,47 @@
         .replace(/\bKPI\b/g, "K P I")
         .replace(/\bKPIs\b/g, "K P Is")
         .replace(/\bSLA\b/g, "S L A")
-        .replace(/\bROP\b/g, "R O P")
-        .replace(/\bATP\b/g, "A T P")
+        .replace(/\bSLAs\b/g, "S L As")
+        .replace(/\bCOD\b/g, "C O D")
+        .replace(/\bROP\b/g, "Reorder Point")
+        .replace(/\bATP\b/g, "Available to Promise")
         .replace(/\bNDR\b/g, "N D R")
-        .replace(/\bFADR\b/g, "F A D R")
+        .replace(/\bFADR\b/g, "First Attempt Delivery Rate")
         .replace(/\bUAT\b/g, "U A T")
         .replace(/\bBRDs?\b/g, "B R D")
-        .replace(/\s*—\s*/g, ". ")
+        .replace(/\bCBM\b/g, "cubic meters")
+        .replace(/\s*[—–]\s*/g, ". ")
         .replace(/\s+/g, " ")
         .trim();
     }
 
-    // XỬ LÝ VĂN BẢN TIẾNG VIỆT PHA THUẬT NGỮ TIẾNG ANH:
-    // 1. Ngày hội Sale 11/11, 12/12
+    // CHẾ ĐỘ TIẾNG VIỆT 100% THUẦN VIỆT TỰ NHIÊN (Không đánh vần tiếng Anh ngọng nghịu):
+    // 1. Bỏ các cụm chú thích tiếng Anh nằm trong ngoặc đơn ngay sau tiếng Việt, VD: "xe chạy rỗng (Empty Miles)" -> "xe chạy rỗng"
+    s = s
+      .replace(/\(1\)/g, ". Thứ nhất, ")
+      .replace(/\(2\)/g, ". Thứ hai, ")
+      .replace(/\(3\)/g, ". Thứ ba, ")
+      .replace(/\(\s*[A-Za-z0-9\s\/&.,'-]{2,45}\s*\)/g, " ");
+
+    // 2. Ngày hội Sale & Xóa dấu phẩy hàng nghìn (VD: 11,500 -> 11500)
     s = s
       .replace(/\b11\/11\b/g, "11 tháng 11")
-      .replace(/\b12\/12\b/g, "12 tháng 12");
+      .replace(/\b12\/12\b/g, "12 tháng 12")
+      .replace(/(\d),(?=\d{3}\b)/g, "$1")
+      .replace(/(\d),(?=\d{3})/g, "$1");
 
-    // 2. Xóa dấu phẩy hàng nghìn trong con số (VD: 11,500 -> 11500; 4,050,000 -> 4050000; $85,000 -> $85000)
-    s = s.replace(/(\d),(?=\d{3}\b)/g, "$1").replace(/(\d),(?=\d{3})/g, "$1");
-
-    // 3. Chuyển đổi tiền tệ, container, giờ giấc và toán tử so sánh sang lời nói rõ ràng
+    // 3. Chuyển đổi tiền tệ, đơn vị, giờ giấc và toán tử so sánh sang lời nói tiếng Việt tự nhiên
     s = s
-      .replace(/\$(\d+)/g, "$1 đô la Mỹ")
+      .replace(/\$(\d+(?:\.\d+)?)/g, "$1 đô la Mỹ")
+      .replace(/\bUSD\b/gi, "đô la Mỹ")
       .replace(/(\d+)đ\/đơn/gi, "$1 đồng một đơn")
       .replace(/(\d+)đ\/thùng/gi, "$1 đồng một thùng")
       .replace(/(\d+)đ\/chuyến/gi, "$1 đồng một chuyến")
+      .replace(/(\d+)đ\/kg/gi, "$1 đồng một ki lô gam")
+      .replace(/(\d+)đ\/máy/gi, "$1 đồng một máy")
       .replace(/(\d+)đ\b/gi, "$1 đồng")
-      .replace(/02x40'HC/gi, "2 container 40 feet cao")
-      .replace(/40'HC/gi, "container 40 feet cao")
+      .replace(/02x40'HC/gi, "2 công ten nơ 40 phít cao")
+      .replace(/40'HC/gi, "công ten nơ 40 phít cao")
       .replace(/(\d{1,2}):00\s*[–-]\s*(\d{1,2}):00/g, "từ $1 giờ đến $2 giờ")
       .replace(/\b0(\d):(\d{2})\b/g, "$1 giờ $2 phút")
       .replace(/\b(\d{1,2}):00\b/g, "$1 giờ")
@@ -747,46 +771,97 @@
       .replace(/>=\s*(\d+)/g, "tối thiểu $1")
       .replace(/<=\s*(\d+)/g, "tối đa $1")
       .replace(/>\s*(\d+(?:\.\d+)?)\s*tấn/gi, "trên $1 tấn")
-      .replace(/\(1\)/g, ". Thứ nhất, ")
-      .replace(/\(2\)/g, ". Thứ hai, ")
-      .replace(/\(3\)/g, ". Thứ ba, ");
+      .replace(/(\d+(?:\.\d+)?)\s*CBM\b/gi, "$1 mét khối")
+      .replace(/(\d+(?:\.\d+)?)\s*kg\b/gi, "$1 ki lô gam");
 
-    // 4. Bỏ ngoặc đơn lặp lại dư thừa làm câu đọc bị dài dòng dồn chữ, nhưng GIỮ NGUYÊN thuật ngữ tiếng Anh chuẩn!
+    // 4. Việt hóa mượt mà các từ viết tắt & thuật ngữ chuyên ngành còn sót lại để giọng Việt đọc chuẩn 100%
+    const viSpokenReplacements = [
+      [/\bTMĐT\b/g, "thương mại điện tử"],
+      [/\bTP\.?\s*HCM\b/gi, "Thành phố Hồ Chí Minh"],
+      [/\bNCC\b/g, "nhà cung cấp"],
+      [/\bHSD\b/g, "hạn sử dụng"],
+      [/\bĐVVC\b/g, "đơn vị vận chuyển"],
+      [/\bCSKH\b/g, "chăm sóc khách hàng"],
+      [/\bXNK\b/g, "xuất nhập khẩu"],
+      [/\bC\/O Form E\b/gi, "giấy chứng nhận xuất xứ mẫu E"],
+      [/\bC\/O\b/g, "giấy chứng nhận xuất xứ"],
+      [/\bB\/L\b/g, "vận đơn đường biển"],
+      [/\bP\/L\b/g, "phiếu đóng gói"],
+      [/\bD\/O\b/g, "lệnh giao hàng"],
+      [/\bDEM\/DET\b/gi, "phí lưu bãi và lưu vỏ công ten nơ"],
+      [/\bFree DEM\b/gi, "miễn phí lưu bãi"],
+      [/\bDEM\b/g, "phí lưu bãi"],
+      [/\bVNACCS\/VCIS\b/gi, "hệ thống hải quan điện tử"],
+      [/\bVNACCS\b/gi, "hệ thống hải quan điện tử"],
+      [/\bHS Code\b/gi, "mã số hàng hóa"],
+      [/\bIncoterms\b/gi, "quy tắc thương mại quốc tế"],
+      [/\bLocal Charges\b/gi, "phụ phí tại cảng"],
+      [/\bFree time\b/gi, "thời gian miễn phí"],
+      [/\be-Manifest\b/gi, "bản lược khai hàng hóa điện tử"],
+      [/\bManifest\b/gi, "bản lược khai hàng hóa"],
+      [/\bS&OP\b/gi, "hoạch định bán hàng và vận hành"],
+      [/\bCost per Successful Drop\b/gi, "chi phí trên mỗi đơn giao thành công"],
+      [/\bCost per Drop\b/gi, "chi phí trên mỗi điểm giao"],
+      [/\bTime Windows?\b/gi, "khung giờ nhận hàng"],
+      [/\bEmpty Miles\b/gi, "quãng đường xe chạy rỗng"],
+      [/\bBackhaul\b/gi, "hàng ghép chiều về"],
+      [/\bLoad Factor\b/gi, "hệ số lấp đầy tải trọng"],
+      [/\bFill Rate\b/gi, "tỷ lệ lấp đầy"],
+      [/\bSplit Delivery\b/gi, "tách xe giao hàng"],
+      [/\bRoute Optimization\b/gi, "tối ưu lộ trình"],
+      [/\bCycle Count\b/gi, "kiểm kê cuốn chiếu"],
+      [/\bBlind Count\b/gi, "kiểm đếm mù"],
+      [/\bSlotting\b/gi, "quy hoạch vị trí kệ"],
+      [/\bQuarantine\b/gi, "khu vực cách ly"],
+      [/\bAudit Trail\b/gi, "lịch sử truy vết giao dịch"],
+      [/\bSafety Stock\b/gi, "tồn kho an toàn"],
+      [/\bLead Time\b/gi, "thời gian giao hàng"],
+      [/\bDays of Supply\b/gi, "số ngày tồn kho đủ dùng"],
+      [/\bBullwhip Effect\b/gi, "hiệu ứng roi da"],
+      [/\bOverselling\b/gi, "bán vượt tồn kho"],
+      [/\bOversell\b/gi, "bán vượt tồn kho"],
+      [/\bFlash Sale\b/gi, "chương trình mở bán chớp nhoáng"],
+      [/\bMega Sale\b/gi, "ngày hội mua sắm lớn"],
+      [/\bCron-job\b/gi, "tác vụ đồng bộ định kỳ"],
+      [/\bBuffer Stock\b/gi, "tồn kho đệm an toàn"],
+      [/\bMaster Data\b/gi, "dữ liệu gốc"],
+      [/\bUser Story\b/gi, "kịch bản người dùng"],
+      [/\bEdge Cases?\b/gi, "tình huống ngoại lệ"],
+      [/\bGo-live\b/gi, "vận hành chính thức"],
+      [/\bCase Study\b/gi, "tình huống thực tế"],
+      [/\bShipper\b/gi, "bưu tá"],
+      [/\bPicker\b/gi, "nhân viên soạn hàng"],
+      [/\bHub\b/gi, "bưu cục"],
+      [/\bcontainer\b/gi, "công ten nơ"],
+      [/\bcont\b/gi, "công ten nơ"],
+      [/\bWMS\b/g, "hệ thống quản lý kho"],
+      [/\bTMS\b/g, "phần mềm điều phối vận tải"],
+      [/\bOMS\b/g, "hệ thống quản lý đơn hàng"],
+      [/\bERP\b/g, "hệ thống quản trị doanh nghiệp"],
+      [/\bSKU\b/g, "mã hàng"],
+      [/\bKPI\b/g, "chỉ số đánh giá"],
+      [/\bSLA\b/g, "cam kết chất lượng dịch vụ"],
+      [/\bCOD\b/g, "tiền thu hộ"],
+      [/\bROP\b/g, "điểm đặt hàng lại"],
+      [/\bATP\b/g, "tồn kho khả dụng"],
+      [/\bNDR\b/g, "đơn giao thất bại"],
+      [/\bFADR\b/g, "tỷ lệ giao thành công lần đầu"],
+      [/\bIRA\b/g, "độ chính xác tồn kho"],
+      [/\bPOD\b/g, "biên bản giao nhận"],
+      [/\bPDA\b/g, "máy quét mã vạch cầm tay"],
+      [/\bUAT\b/g, "kiểm thử nghiệm thu"],
+      [/\bBRD\b/g, "tài liệu đặc tả nghiệp vụ"],
+      [/\bFEFO\b/g, "nguyên tắc hết hạn trước xuất trước"],
+      [/\bFIFO\b/g, "nguyên tắc nhập trước xuất trước"],
+      [/\bOTIF\b/g, "tỷ lệ giao đúng giờ và đủ hàng"],
+      [/\bSTAR\b/g, "bốn bước Tình huống, Nhiệm vụ, Hành động và Kết quả"]
+    ];
+
+    for (const [pattern, replacement] of viSpokenReplacements) {
+      s = s.replace(pattern, replacement);
+    }
+
     s = s
-      .replace(/\(\s*([A-Za-z0-9\s\/&-]{2,35})\s*\)/g, ", $1, ")
-      .replace(/\bB\/L\b/g, "Bill of Lading")
-      .replace(/\bP\/L\b/g, "Packing List")
-      .replace(/\bC\/O Form E\b/gi, "C O Form E")
-      .replace(/\bC\/O\b/g, "C O")
-      .replace(/\bD\/O\b/g, "D O")
-      .replace(/\bDEM\/DET\b/g, "DEM and DET")
-      .replace(/\bVNACCS\/VCIS\b/gi, "VNACCS")
-      .replace(/\bS&OP\b/g, "S and O P")
-      .replace(/\bWMS\b/g, "W M S")
-      .replace(/\bTMS\b/g, "T M S")
-      .replace(/\bOMS\b/g, "O M S")
-      .replace(/\bERP\b/g, "E R P")
-      .replace(/\bSKU\b/g, "S K U")
-      .replace(/\bKPI\b/g, "K P I")
-      .replace(/\bSLA\b/g, "S L A")
-      .replace(/\bCOD\b/g, "C O D")
-      .replace(/\bROP\b/g, "R O P")
-      .replace(/\bATP\b/g, "A T P")
-      .replace(/\bNDR\b/g, "N D R")
-      .replace(/\bFADR\b/g, "F A D R")
-      .replace(/\bNFR\b/g, "N F R")
-      .replace(/\bIRA\b/g, "I R A")
-      .replace(/\bPOD\b/g, "P O D")
-      .replace(/\bPDA\b/g, "P D A")
-      .replace(/\bUAT\b/g, "U A T")
-      .replace(/\bBRD\b/g, "B R D")
-      .replace(/\bFOB\b/g, "F O B")
-      .replace(/\bCIF\b/g, "C I F")
-      .replace(/\bFCA\b/g, "F C A")
-      .replace(/\bFCL\b/g, "F C L")
-      .replace(/\bLCL\b/g, "L C L")
-      .replace(/\bHS Code\b/gi, "H S Code")
-      .replace(/\bCBM\b/g, "C B M")
       .replace(/\s*[—–]\s*/g, ". ")
       .replace(/\s*:\s*/g, ". ")
       .replace(/,\s*,+/g, ", ")
@@ -1090,16 +1165,9 @@
       );
     };
 
-    // 1. Kiểm tra xem máy có giọng đọc bản xứ phù hợp hay không (Edge Natural hoặc Chrome Google)
-    const hasViVoice = Boolean(
-      multilingualViVoice ||
-      viVoice ||
-      (voices && voices.some(v => v.lang && v.lang.toLowerCase().startsWith("vi")))
-    );
-    const hasEnVoice = Boolean(
-      enVoice ||
-      (voices && voices.some(v => v.lang && v.lang.toLowerCase().startsWith("en")))
-    );
+    // 1. Chỉ dùng SpeechSynthesis khi máy có giọng đọc Neural chất lượng cao (Edge Natural / Google / Apple), tránh giọng SAPI5 robot cũ
+    const hasViVoice = Boolean(multilingualViVoice || viVoice);
+    const hasEnVoice = Boolean(enVoice);
     const canUseSpeechSynthesis = synth && (lang === "en" ? hasEnVoice : hasViVoice);
 
     if (canUseSpeechSynthesis) {
@@ -1149,17 +1217,52 @@
   }
 
   /**
-   * Phát âm thanh qua Audio Stream liền mạch (chỉ ngắt ở dấu chấm câu tự nhiên, không ngắt vụn từng từ)
+   * Phát âm thanh qua Audio Stream liền mạch (tách theo câu/mệnh đề <= 175 ký tự để không bao giờ bị cắt ngang từ)
    */
   function playSeamlessAudioStream(fullText, lang, userRate, myToken, onComplete) {
-    const sentences = String(fullText)
-      .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
-      ?.map(s => s.trim())
-      .filter(Boolean) || [fullText];
+    const rawSentences =
+      String(fullText)
+        .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+        ?.map(s => s.trim())
+        .filter(Boolean) || [String(fullText).trim()];
+
+    const chunks = [];
+    rawSentences.forEach(sent => {
+      if (sent.length <= 175) {
+        chunks.push(sent);
+      } else {
+        const parts = sent.split(/,\s+/);
+        let acc = "";
+        parts.forEach(p => {
+          const candidate = acc ? `${acc}, ${p}` : p;
+          if (candidate.length <= 175) {
+            acc = candidate;
+          } else {
+            if (acc) chunks.push(acc);
+            if (p.length <= 175) {
+              acc = p;
+            } else {
+              const words = p.split(/\s+/);
+              let wAcc = "";
+              words.forEach(w => {
+                if ((wAcc + " " + w).trim().length <= 175) {
+                  wAcc = (wAcc + " " + w).trim();
+                } else {
+                  if (wAcc) chunks.push(wAcc);
+                  wAcc = w;
+                }
+              });
+              acc = wAcc;
+            }
+          }
+        });
+        if (acc) chunks.push(acc);
+      }
+    });
 
     const tl = lang === "en" ? "en" : "vi";
-    const audioQueue = sentences.map(sentence => {
-      const url = `/api/tts?tl=${encodeURIComponent(tl)}&q=${encodeURIComponent(sentence.slice(0, 190))}`;
+    const audioQueue = chunks.filter(Boolean).map(chunk => {
+      const url = `/api/tts?tl=${encodeURIComponent(tl)}&q=${encodeURIComponent(chunk)}`;
       const a = new Audio(url);
       a.preload = "auto";
       a.playbackRate = userRate || 1.0;
@@ -1369,16 +1472,24 @@
   async function askCozeBotBrain(userAnswer, qObj, signal) {
     if (!state.cozeBotId || !state.cozeApiToken) return null;
     try {
+      const isEn = state.selectedLang === "en";
       const lastInterrupt = state.interruptionLog[state.interruptionLog.length - 1];
       const interruptCtx =
         lastInterrupt && lastInterrupt.questionIndex === state.currentQIndex
-          ? `\n[Lưu ý: Ứng viên vừa ngắt lời AI tại đoạn "${lastInterrupt.spokenBeforeInterrupt}"]`
+          ? isEn
+            ? `\n[Note: Candidate interrupted AI at "${lastInterrupt.spokenBeforeInterrupt}"]`
+            : `\n[Lưu ý: Ứng viên vừa ngắt lời AI tại đoạn "${lastInterrupt.spokenBeforeInterrupt}"]`
           : "";
 
-      const queryText = `[Ngành: ${getActiveTrack().name} | Cấp độ: ${state.selectedLevel}]
+      const queryText = isEn
+        ? `[Domain: ${getActiveTrack().nameEn} | Level: ${state.selectedLevel}]
+Current Question: ${qObj.question_text_en}${interruptCtx}
+Candidate Answer: "${userAnswer}"
+Act as a Logistics Operations Interviewer. Give 1 concise feedback sentence and ask 1 sharp operational follow-up question in 100% pure English (do NOT use any Vietnamese words).`
+        : `[Ngành: ${getActiveTrack().name} | Cấp độ: ${state.selectedLevel}]
 Câu hỏi hiện tại: ${qObj.question_text}${interruptCtx}
 Trả lời của sinh viên: "${userAnswer}"
-Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén và hỏi xoáy 1 chi tiết thực chiến liên quan (Tiếng Việt).`;
+Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1 câu và hỏi xoáy 1 chi tiết thực tế bằng 100% Tiếng Việt tự nhiên, thuần Việt, không chêm từ tiếng Anh lộn xộn.`;
 
       const resp = await fetch("https://api.coze.com/open_api/v2/chat", {
         method: "POST",
@@ -1578,6 +1689,7 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
   function startNewPracticeSession() {
     const track = getActiveTrack();
     const mentor = getActiveMentor();
+    const isEn = state.selectedLang === "en";
 
     state.activeSessionId = `sess-${track.id}-${Date.now().toString().slice(-6)}`;
     state.questionsPlan = JSON.parse(JSON.stringify(track.questions || []));
@@ -1590,10 +1702,21 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
     state.elapsedSec = 0;
 
     if (el.quickStartModal) el.quickStartModal.classList.remove("open");
-    if (el.roomTrackBadge) el.roomTrackBadge.textContent = track.shortTitle;
+    if (el.roomTrackBadge) {
+      el.roomTrackBadge.textContent = isEn ? track.shortTitleEn || track.nameEn : track.shortTitle;
+    }
     if (el.roomLevelBadge) el.roomLevelBadge.textContent = state.selectedLevel;
-    if (el.mentorNameLabel) el.mentorNameLabel.textContent = mentor.name;
-    if (el.mentorRoleChip) el.mentorRoleChip.textContent = mentor.badge;
+    if (el.mentorNameLabel) {
+      el.mentorNameLabel.textContent = isEn ? mentor.nameEn || mentor.name : mentor.name;
+    }
+    if (el.mentorRoleChip) {
+      el.mentorRoleChip.textContent = isEn ? mentor.badgeEn || mentor.badge : mentor.badge;
+    }
+    if (el.answerTranscriptInput) {
+      el.answerTranscriptInput.placeholder = isEn
+        ? "Click the Mic to speak in English, or type your structured STAR answer here..."
+        : "Bấm nút Mic để trả lời bằng giọng nói hoặc gõ trực tiếp câu trả lời của bạn tại đây...";
+    }
     if (el.scratchpadTextarea) el.scratchpadTextarea.value = "";
     resetMiniCalculator();
     updateDialectBadgeUI();
@@ -1629,11 +1752,13 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
 
   function renderQuestionStepperPills() {
     if (!el.questionStepperPills) return;
+    const isEn = state.selectedLang === "en";
     el.questionStepperPills.innerHTML = state.questionsPlan
       .map((q, idx) => {
         const isDone = Boolean(state.qaAnswersByQ[idx]);
         const isActive = idx === state.currentQIndex;
-        const label = q.case_study_board ? `Câu ${idx + 1} · Case Study` : `Câu ${idx + 1}`;
+        const baseQ = isEn ? `Q${idx + 1}` : `Câu ${idx + 1}`;
+        const label = q.case_study_board ? `${baseQ} · Case Study` : baseQ;
         return `<button type="button" class="q-step-pill ${isActive ? "active" : ""} ${
           isDone && !isActive ? "done" : ""
         }" data-step-q="${idx}">${isDone ? "✓ " : ""}${label}</button>`;
@@ -1731,27 +1856,42 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
     }
 
     const isEn = state.selectedLang === "en";
+    const track = getActiveTrack();
     const mentor = getActiveMentor();
+    const qTitle = isEn ? q.title_en || q.title : q.title;
     const qPrompt = isEn ? q.question_text_en : q.question_text;
 
     let displayMsg = "";
+    let spokenMsg = "";
+
     if (isInitialGreeting) {
-      displayMsg = isEn
-        ? `Hello! I am ${mentor.name}. Welcome to your ${getActiveTrack().nameEn} (${state.selectedLevel}) practice.\n\nQuestion ${qIdx + 1} — ${q.title}:\n${qPrompt}`
-        : `Chào bạn! Mình là ${mentor.name}. Chúng ta bắt đầu buổi luyện tập chuyên ngành ${getActiveTrack().name} nhé.\n\nCâu hỏi ${qIdx + 1} — ${q.title}:\n${qPrompt}`;
+      if (isEn) {
+        displayMsg = `Hello! I am ${mentor.nameEn || mentor.name}. Welcome to your ${track.nameEn} (${state.selectedLevel}) interview practice.\n\nQuestion ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = `Hello! I am ${mentor.spokenNameEn || mentor.nameEn}. Welcome to your ${track.nameEn} interview practice. Let's begin with Question ${qIdx + 1}. ${qPrompt}`;
+      } else {
+        displayMsg = `Chào bạn! Mình là ${mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.name} nhé.\n\nCâu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = `Chào bạn! Mình là ${mentor.spokenNameVi || mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.spokenNameVi || track.name} nhé. Câu hỏi số ${qIdx + 1} dành cho bạn: ${q.spoken_vi || qPrompt}`;
+      }
     } else {
-      displayMsg = isEn
-        ? `Question ${qIdx + 1} — ${q.title}:\n${qPrompt}`
-        : `Câu hỏi ${qIdx + 1} — ${q.title}:\n${qPrompt}`;
+      if (isEn) {
+        displayMsg = `Question ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = `Let's move on to Question ${qIdx + 1}. ${qPrompt}`;
+      } else {
+        displayMsg = `Câu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = `Tiếp theo là câu hỏi số ${qIdx + 1}: ${q.spoken_vi || qPrompt}`;
+      }
     }
 
-    const adapted = adaptMentorToneByRegion(displayMsg);
-    appendChatBubble("ai", adapted, `Câu ${qIdx + 1}`, false);
-    speakMentorText(adapted);
+    const adaptedDisplay = adaptMentorToneByRegion(displayMsg);
+    const adaptedSpoken = adaptMentorToneByRegion(spokenMsg);
+    appendChatBubble("ai", adaptedDisplay, isEn ? `Question ${qIdx + 1}` : `Câu ${qIdx + 1}`, false);
+    speakMentorText(adaptedSpoken);
   }
 
   function updateCaseStudyPanelForQuestion(q) {
-    const hasBoard = Boolean(q && q.case_study_board);
+    const isEn = state.selectedLang === "en";
+    const activeBoard = isEn ? q?.case_study_board_en || q?.case_study_board : q?.case_study_board;
+    const hasBoard = Boolean(activeBoard);
     if (el.interviewLayoutGrid) {
       el.interviewLayoutGrid.classList.toggle("has-case-study", hasBoard);
     }
@@ -1764,27 +1904,36 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
       return;
     }
 
-    const board = q.case_study_board;
+    const board = activeBoard;
     if (el.caseDomainBadge) {
       el.caseDomainBadge.textContent = `CASE STUDY · ${q.domain} · ${q.question_id.toUpperCase()}`;
     }
     if (el.caseBoardTitle) {
-      el.caseBoardTitle.textContent = q.title;
+      el.caseBoardTitle.textContent = isEn ? q.title_en || q.title : q.title;
     }
 
     const headersHtml = (board.table_headers || [])
       .map(h => `<th>${escapeHtml(h)}</th>`)
       .join("");
 
+    const rowClickHint = isEn
+      ? "Click row to copy data into Scratchpad"
+      : "Nhấp vào dòng để trích xuất số liệu xuống Ghi chú nháp";
+
     const rowsHtml = (board.table_rows || [])
       .map((row, rIdx) => {
         const tds = row
           .map((cell, cIdx) => {
             const str = String(cell ?? "");
-            if (/-\d+/.test(str) || /lệch phân nhóm|quá hạn|đã lố|cấm/i.test(str)) {
+            if (
+              /-\d+/.test(str) ||
+              /lệch phân nhóm|quá hạn|đã lố|cấm|mismatch|past free|banned/i.test(str)
+            ) {
               return `<td class="td-neg">${escapeHtml(str)}</td>`;
             }
-            if (/còn 5 ngày|24\.0%|20\.0%|phạt|11 ngày/i.test(str)) {
+            if (
+              /còn 5 ngày|5 days left|24\.0%|20\.0%|phạt|late fine|penalty|11 ngày|11 days/i.test(str)
+            ) {
               return `<td class="td-warn">${escapeHtml(str)}</td>`;
             }
             return `<td style="${cIdx === 0 ? "font-weight:700; white-space:nowrap;" : ""}">${escapeHtml(
@@ -1792,7 +1941,7 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
             )}</td>`;
           })
           .join("");
-        return `<tr data-ridx="${rIdx}" title="Nhấp vào dòng để trích xuất số liệu xuống Ghi chú nháp">${tds}</tr>`;
+        return `<tr data-ridx="${rIdx}" title="${escapeHtml(rowClickHint)}">${tds}</tr>`;
       })
       .join("");
 
@@ -1841,6 +1990,7 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
 
     const q = state.questionsPlan[state.currentQIndex];
     if (!q) return;
+    const isEn = state.selectedLang === "en";
 
     if (el.hintKeywordsTags) {
       el.hintKeywordsTags.innerHTML = (q.expected_keywords || [])
@@ -1859,9 +2009,8 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
     }
 
     if (el.hintGuideBullets) {
-      el.hintGuideBullets.innerHTML = (q.keyword_hints_vi || [])
-        .map(b => `<li>${escapeHtml(b)}</li>`)
-        .join("");
+      const bullets = isEn ? q.keyword_hints_en || q.keyword_hints_vi || [] : q.keyword_hints_vi || [];
+      el.hintGuideBullets.innerHTML = bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("");
     }
 
     el.keywordHintPanel.style.display = "block";
@@ -1869,6 +2018,10 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
 
   function appendChatBubble(role, text, metaLabel, isProbe = false, audioUrl = "") {
     if (!el.chatStream) return;
+    const isEn = state.selectedLang === "en";
+    const mentor = getActiveMentor();
+    const mentorDisplayName = isEn ? mentor.nameEn || mentor.name : mentor.name;
+
     const div = document.createElement("div");
     div.className = `chat-msg ${role === "ai" ? "chat-msg-ai" : "chat-msg-user"} ${
       isProbe ? "is-probe" : ""
@@ -1876,13 +2029,13 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
 
     const who =
       role === "ai"
-        ? `<span class="msg-role-badge">${ICONS.bot} <span>${escapeHtml(getActiveMentor().name)}</span></span>`
-        : `<span class="msg-role-badge"><span>Câu trả lời của bạn</span></span>`;
+        ? `<span class="msg-role-badge">${ICONS.bot} <span>${escapeHtml(mentorDisplayName)}</span></span>`
+        : `<span class="msg-role-badge"><span>${isEn ? "Your Answer" : "Câu trả lời của bạn"}</span></span>`;
 
     const audioHtml =
       role === "user" && audioUrl
         ? `<div class="audio-playback-bar">
-             <span style="font-size:0.72rem; font-weight:700;">Bản thu giọng nói:</span>
+             <span style="font-size:0.72rem; font-weight:700;">${isEn ? "Voice Recording:" : "Bản thu giọng nói:"}</span>
              <audio controls preload="metadata" src="${escapeHtml(audioUrl)}"></audio>
            </div>`
         : "";
@@ -2098,10 +2251,13 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
           )
         : 3.5;
 
+    const isEnSession = state.selectedLang === "en";
     appendChatBubble(
       "user",
       cleanAnswer,
-      `${wordCount} từ · Phản xạ ${latencySec}s`,
+      isEnSession
+        ? `${wordCount} words · Response in ${latencySec}s`
+        : `${wordCount} từ · Phản xạ ${latencySec}s`,
       false,
       recorded.audioUrl
     );
@@ -2125,33 +2281,52 @@ Hãy đóng vai AI Logistics Mentor nhận xét ngắn gọn 1-2 câu sắc bén
       };
 
       const isEn = state.selectedLang === "en";
-      let fullProbe = "";
+      let displayProbe = "";
+      let spokenProbe = "";
 
       // Nếu đang kết nối Brain Coze Bot (coze.com), gọi Coze với AbortController (hỗ trợ hủy khi Barge-in)
       if (state.aiProvider === "coze" && state.cozeBotId && state.cozeApiToken) {
         abortPendingBrainRequests();
         state.activeBrainAbortController = new AbortController();
         state.isAnalyzing = true;
-        setMentorStageVisual("ai_analyzing", "Coze Bot Brain đang suy nghĩ câu hỏi phản biện...", false);
+        setMentorStageVisual(
+          "ai_analyzing",
+          isEn
+            ? "AI Mentor is preparing a follow-up question..."
+            : "Coze Bot Brain đang suy nghĩ câu hỏi phản biện...",
+          false
+        );
         const cozeReply = await askCozeBotBrain(
           cleanAnswer,
           qObj,
           state.activeBrainAbortController.signal
         );
         state.isAnalyzing = false;
-        if (cozeReply) fullProbe = cozeReply;
+        if (cozeReply) {
+          displayProbe = cozeReply;
+          spokenProbe = cozeReply;
+        }
       }
 
-      if (!fullProbe) {
+      if (!displayProbe) {
         const probeBody = isEn ? qObj.followup_probe_en : qObj.followup_probe_vi;
+        const spokenProbeBody = isEn
+          ? qObj.followup_probe_en
+          : qObj.spoken_probe_vi || qObj.followup_probe_vi;
         const probePrefix = isEn
           ? "Good point! Let me ask one follow-up detail:\n"
           : "Hướng tiếp cận tốt đấy! Mình hỏi sâu thêm một chi tiết thực tế này nhé:\n";
-        fullProbe = adaptMentorToneByRegion(probePrefix + probeBody);
+        displayProbe = adaptMentorToneByRegion(probePrefix + probeBody);
+        spokenProbe = adaptMentorToneByRegion(probePrefix + spokenProbeBody);
       }
 
-      appendChatBubble("ai", fullProbe, "Câu hỏi gợi mở tầng 2", true);
-      speakMentorText(fullProbe);
+      appendChatBubble(
+        "ai",
+        displayProbe,
+        isEn ? "Follow-up Question" : "Câu hỏi gợi mở tầng 2",
+        true
+      );
+      speakMentorText(spokenProbe);
       return;
     }
 

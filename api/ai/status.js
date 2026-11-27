@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     ok: true,
     geminiServerConfigured: hasServerKey,
     ttsModel: "gemini-2.5-flash-preview-tts",
-    brainModel: "gemini-2.5-flash",
+    brainModel: "gemini-3.8-flash",
     voices: ["Aoede", "Charon", "Orus", "Kore", "Puck", "Leda"]
   });
 }

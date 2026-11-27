@@ -210,15 +210,24 @@
 
               <div class="stage-audio-controls">
                 <select id="voiceRateSelect" class="voice-speed-select" title="Tốc độ đọc của AI Mentor">
-                  <option value="0.88">0.88x Chậm rõ</option>
-                  <option value="0.96" selected>0.96x Chuẩn tự nhiên</option>
-                  <option value="1.05">1.05x Linh hoạt</option>
+                  <option value="0.92">0.92x Điềm đạm</option>
+                  <option value="1.0" selected>1.0x Chuẩn tự nhiên</option>
+                  <option value="1.08">1.08x Linh hoạt</option>
                 </select>
 
                 <button type="button" class="btn-stage-ctrl" id="btnReplayQuestionAudio" title="Nghe AI đọc lại câu vừa rồi">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                   <span>Nghe lại</span>
                 </button>
+
+                <button type="button" class="btn-stage-ctrl studio-pill-btn" id="btnOpenVoiceStudioFromRoom" title="Đổi giọng đọc Studio AI hoặc cấu hình Gemini Key">
+                  <span id="roomVoiceEngineBadge">✨ Studio AI</span>
+                </button>
+
+                <label class="voice-mute-toggle" title="Tự động mở Mic sau khi AI hỏi xong và tự gửi khi bạn nói xong">
+                  <input type="checkbox" id="chkHandsFreeMode" checked />
+                  <span>Đàm thoại tự động</span>
+                </label>
 
                 <label class="voice-mute-toggle" title="Bật hoặc tắt tiếng nói của AI">
                   <input type="checkbox" id="chkEnableAiVoice" checked />
@@ -227,7 +236,7 @@
 
                 <label class="barge-in-toggle" title="Cho phép nói đè để ngắt lời AI giữa chừng (AEC + VAD)">
                   <input type="checkbox" id="chkEnableBargeIn" checked />
-                  <span>Ngắt lời (Barge-in)</span>
+                  <span>Ngắt lời</span>
                 </label>
               </div>
             </div>
@@ -719,67 +728,95 @@
   </div>
 
   <!-- ============================================================================
-       MODAL 3: CẤU HÌNH 3 TẦNG VOICE AI (STT • BRAIN: BUILT-IN / GEMINI / COZE • TTS)
+       MODAL 3: CẤU HÌNH GEMINI 2.5 STUDIO VOICE-TO-VOICE (TTS • STT • BRAIN • CLOUD)
        ============================================================================ -->
   <div class="modal-overlay" id="apiConfigModal">
     <div class="modal-dialog">
       <div class="modal-head">
         <div>
-          <h3 class="modal-title">Cấu Hình Kiến Trúc 3 Tầng Voice AI</h3>
-          <p class="section-sub">Tùy chọn linh hoạt giữa thuật toán tiết kiệm chi phí (0đ) và AI API (Gemini / Coze) theo nhu cầu.</p>
+          <h3 class="modal-title">Cấu Hình Gemini 2.5 Studio Voice-to-Voice</h3>
+          <p class="section-sub">Giọng đọc cảm xúc tự nhiên như HR thật, nghe hiểu song ngữ &amp; đối thoại mượt mà.</p>
         </div>
         <button type="button" class="modal-close-btn" id="btnCloseApiModal">✕</button>
       </div>
 
-      <!-- Tầng 1: STT -->
-      <div class="qs-field-group">
-        <label class="qs-label" for="sttEngineSelect">1. Tầng STT (Catch Voice → Text)</label>
-        <select id="sttEngineSelect" class="clean-input">
-          <option value="webspeech_hybrid">Web Speech API + Bộ lọc AEC & Vietlish Auto-Fix (0đ)</option>
-          <option value="gemini_audio">Gemini 2.0 Audio STT (Chuẩn Vietlish cao — cần Gemini API Key)</option>
-        </select>
-      </div>
+      <div class="modal-body-scroll">
+        <div class="studio-status-banner" id="geminiServerStatusBanner">
+          <span id="geminiServerStatusText">💡 Nhập <strong>GEMINI_API_KEY</strong> trên Vercel (hoặc dán vào ô bên dưới) để kích hoạt giọng Studio mượt nhất.</span>
+        </div>
 
-      <!-- Tầng 2: Brain -->
-      <div class="qs-field-group">
-        <label class="qs-label" for="aiProviderSelect">2. Tầng Brain (Suy nghĩ phản hồi & Chấm điểm)</label>
-        <select id="aiProviderSelect" class="clean-input">
-          <option value="builtin">Built-in Logistics Brain (Thuật toán riêng — 0đ, phản hồi tức thì)</option>
-          <option value="gemini">Google Gemini 2.0 Flash API (Ngữ nghĩa sâu + JSON Schema)</option>
-          <option value="coze">Coze Bot API (coze.com — Workflow & Knowledge Base tùy chỉnh)</option>
-        </select>
-      </div>
+        <!-- Tầng 0: Giọng nói AI (TTS Studio) -->
+        <div class="qs-section-card">
+          <div class="qs-section-title">1. Giọng nói HR Mentor (Text-to-Speech)</div>
+          <select id="ttsEngineSelect" class="clean-input" style="margin-bottom:0.45rem;">
+            <option value="gemini_studio" selected>✨ Gemini 2.5 Native Neural Voice (Mượt mà, cảm xúc như người thật)</option>
+            <option value="browser_standard">Giọng tiêu chuẩn trình duyệt / Cloud cơ bản (Dự phòng 0đ)</option>
+          </select>
 
-      <!-- Cấu hình Gemini -->
-      <div class="qs-field-group" id="geminiKeyFieldWrap" style="display:none;">
-        <label class="qs-label" for="geminiApiKeyInput">Google Gemini API Key</label>
-        <input type="password" id="geminiApiKeyInput" class="clean-input" placeholder="AIzaSy..." autocomplete="off" />
-      </div>
+          <div style="display:flex; gap:0.45rem; align-items:center;" id="studioVoicePickerRow">
+            <select id="studioVoiceSelect" class="clean-input">
+              <option value="auto" selected>Tự động theo cấp độ (Minh Anh: Nữ · Hoàng Nam: Nam · Quốc Bảo: Giám đốc)</option>
+              <option value="Aoede">Aoede — Giọng Nữ ấm áp, truyền cảm, gần gũi</option>
+              <option value="Kore">Kore — Giọng Nữ rõ nét, hiện đại, chuyên nghiệp</option>
+              <option value="Charon">Charon — Giọng Nam điềm đạm, tự nhiên</option>
+              <option value="Orus">Orus — Giọng Nam chững chạc, uy tín cấp Giám đốc</option>
+              <option value="Puck">Puck — Giọng Nam trẻ trung, linh hoạt</option>
+            </select>
+            <button type="button" class="btn-test-voice" id="btnTestStudioVoice">🔊 Nghe thử</button>
+          </div>
+        </div>
 
-      <!-- Cấu hình Coze Bot API -->
-      <div class="qs-field-group" id="cozeConfigFieldWrap" style="display:none;">
-        <label class="qs-label" for="cozeBotIdInput">Coze Bot ID (từ coze.com)</label>
-        <input type="text" id="cozeBotIdInput" class="clean-input" placeholder="73xxxxxxxxxxxxxxx" style="margin-bottom:0.55rem;" autocomplete="off" />
-        <label class="qs-label" for="cozeApiTokenInput">Coze Personal Access Token (PAT)</label>
-        <input type="password" id="cozeApiTokenInput" class="clean-input" placeholder="pat_..." autocomplete="off" />
-      </div>
+        <!-- Tầng 1: Nhận diện giọng nói (STT) -->
+        <div class="qs-section-card">
+          <div class="qs-section-title">2. Nhận diện lời nói ứng viên (Speech-to-Text)</div>
+          <select id="sttEngineSelect" class="clean-input">
+            <option value="gemini_audio" selected>✨ Gemini 2.5 Multimodal Audio (Nghe chuẩn cả Tiếng Việt &amp; thuật ngữ Logistics)</option>
+            <option value="webspeech_hybrid">Web Speech API cơ bản của trình duyệt (0đ)</option>
+          </select>
+        </div>
 
-      <!-- Tầng 3: Cloud Database (Supabase) -->
-      <div class="qs-field-group" style="border-top:1px solid #E2E8F0; padding-top:0.8rem; margin-top:0.4rem;">
-        <label class="qs-label">3. Cloud Database (Supabase — Tự động kết nối trên Vercel)</label>
-        <p style="font-size:0.74rem; color:#64748B; margin:0 0 0.45rem;">Khi deploy lên Vercel có biến môi trường thì để trống. Nếu test trực tiếp trên máy tính, dán URL &amp; Anon Key của Supabase để đồng bộ nhiều máy:</p>
-        <input type="text" id="supabaseUrlInput" class="clean-input" placeholder="https://xxxx.supabase.co" style="margin-bottom:0.45rem;" autocomplete="off" />
-        <input type="password" id="supabaseAnonKeyInput" class="clean-input" placeholder="Supabase Anon Public Key (eyJ...)" autocomplete="off" />
-      </div>
+        <!-- Tầng 2: Bộ não phản hồi & chấm điểm -->
+        <div class="qs-section-card">
+          <div class="qs-section-title">3. Bộ não Phản hồi trực tiếp &amp; Chấm điểm</div>
+          <select id="aiProviderSelect" class="clean-input">
+            <option value="gemini" selected>✨ Google Gemini 2.5 Flash (Đối thoại linh hoạt theo ý bạn vừa nói + Chấm sâu)</option>
+            <option value="builtin">Built-in Logistics Brain (Thuật toán nội bộ — 0đ)</option>
+            <option value="coze">Coze Bot API (coze.com — Tùy chỉnh riêng)</option>
+          </select>
+        </div>
 
-      <label class="remember-key-row" style="margin-bottom:0.65rem;">
-        <input type="checkbox" id="chkRememberGeminiKey" checked />
-        <span>Lưu cấu hình kết nối trên trình duyệt cá nhân này</span>
-      </label>
+        <!-- Cấu hình khóa Gemini -->
+        <div class="qs-section-card" id="geminiKeyFieldWrap">
+          <div class="qs-section-title">Khóa Google Gemini API Key (Từ Google AI Studio)</div>
+          <input type="password" id="geminiApiKeyInput" class="clean-input" placeholder="AIzaSy... (Để trống nếu đã cài GEMINI_API_KEY trên Vercel)" autocomplete="off" />
+          <div style="font-size:0.73rem; color:#64748B; margin-top:0.35rem;">
+            Lấy khóa tại <strong>aistudio.google.com/apikey</strong>. Nếu cài biến <code>GEMINI_API_KEY</code> trên Vercel thì toàn bộ sinh viên vào web đều dùng được tự động!
+          </div>
+        </div>
+
+        <!-- Cấu hình Coze Bot API -->
+        <div class="qs-section-card" id="cozeConfigFieldWrap" style="display:none;">
+          <div class="qs-section-title">Cấu hình Coze Bot (coze.com)</div>
+          <input type="text" id="cozeBotIdInput" class="clean-input" placeholder="Coze Bot ID (73xxxxxxxxx)" style="margin-bottom:0.45rem;" autocomplete="off" />
+          <input type="password" id="cozeApiTokenInput" class="clean-input" placeholder="Coze Personal Access Token (pat_...)" autocomplete="off" />
+        </div>
+
+        <!-- Tầng 3: Cloud Database (Supabase) -->
+        <div class="qs-section-card">
+          <div class="qs-section-title">4. Cloud Database (Supabase — Đã kết nối mặc định)</div>
+          <input type="text" id="supabaseUrlInput" class="clean-input" placeholder="https://xxxx.supabase.co" style="margin-bottom:0.4rem;" autocomplete="off" />
+          <input type="password" id="supabaseAnonKeyInput" class="clean-input" placeholder="Supabase Publishable / Anon Key" autocomplete="off" />
+        </div>
+
+        <label class="remember-key-row" style="display:flex; align-items:center; gap:0.45rem; font-size:0.78rem; color:#475569; padding:0.15rem 0.2rem;">
+          <input type="checkbox" id="chkRememberGeminiKey" checked />
+          <span>Lưu cấu hình trên trình duyệt này</span>
+        </label>
+      </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-ghost-sm" id="btnCancelApiModal">Hủy</button>
-        <button type="button" class="btn-primary-cta" id="btnSaveApiModal">Lưu cấu hình 3 tầng</button>
+        <button type="button" class="btn-ghost-sm" id="btnCancelApiModal">Đóng</button>
+        <button type="button" class="btn-primary-cta" id="btnSaveApiModal">Lưu &amp; Kích hoạt Studio Voice</button>
       </div>
     </div>
   </div>

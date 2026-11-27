@@ -2507,6 +2507,56 @@ a {
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
 }
 
+.studio-pill-btn {
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border: 1px solid #A5B4FC !important;
+  color: #4338CA !important;
+  font-weight: 700 !important;
+}
+
+.studio-pill-btn:hover {
+  background: #E0E7FF;
+  border-color: #6366F1 !important;
+}
+
+.studio-status-banner {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  color: #3730A3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.studio-status-banner.connected {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
+.btn-test-voice {
+  padding: 0.44rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #6366F1;
+  background: #EEF2FF;
+  color: #4338CA;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-test-voice:hover {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

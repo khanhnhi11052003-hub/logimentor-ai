@@ -13,9 +13,7 @@
   const savedProvider =
     sessionStorage.getItem("logimentor_provider") ||
     localStorage.getItem("logimentor_provider") ||
-    sessionStorage.getItem("logivoice_provider") ||
-    localStorage.getItem("logivoice_provider") ||
-    "builtin";
+    "gemini";
 
   const savedGeminiKey =
     sessionStorage.getItem("logimentor_gemini_key") ||
@@ -27,7 +25,17 @@
   const savedSttEngine =
     sessionStorage.getItem("logimentor_stt_engine") ||
     localStorage.getItem("logimentor_stt_engine") ||
-    "webspeech_hybrid";
+    "gemini_audio";
+
+  const savedTtsEngine =
+    sessionStorage.getItem("logimentor_tts_engine") ||
+    localStorage.getItem("logimentor_tts_engine") ||
+    "gemini_studio";
+
+  const savedStudioVoice =
+    sessionStorage.getItem("logimentor_studio_voice") ||
+    localStorage.getItem("logimentor_studio_voice") ||
+    "auto";
 
   const savedCozeBotId =
     sessionStorage.getItem("logimentor_coze_bot_id") ||
@@ -54,10 +62,11 @@
     primaryDraftByQ: {},
     qaAnswersByQ: {},
 
-    // Voice, Barge-in & Mic State
+    // Voice, Studio TTS, Hands-Free & Barge-in State
     enableAiVoice: true,
     enableBargeIn: true,
-    voiceRate: 0.96,
+    handsFreeMode: true,
+    voiceRate: 1.0,
     isAiSpeaking: false,
     isAnalyzing: false,
     isMicRecording: false,
@@ -72,6 +81,7 @@
     activeBrainAbortController: null,
     questionAskedAt: 0,
     firstTypedOrSpokenAt: 0,
+    lastManualCalcOrTypeAt: 0,
     elapsedSec: 0,
     elapsedInterval: null,
 
@@ -80,10 +90,13 @@
     calcCurrentResult: "0",
     calcJustEvaluated: false,
 
-    // 3-Stage Voice AI Config (STT / Brain / TTS)
-    sttEngine: savedSttEngine, // 'webspeech_hybrid' | 'gemini_audio'
-    aiProvider: savedProvider, // 'builtin' | 'gemini' | 'coze'
+    // Gemini 2.5 Studio Voice-to-Voice Config
+    ttsEngine: savedTtsEngine, // 'gemini_studio' | 'browser_standard'
+    studioVoice: savedStudioVoice, // 'auto' | 'Aoede' | 'Kore' | 'Charon' | 'Orus' | 'Puck'
+    sttEngine: savedSttEngine, // 'gemini_audio' | 'webspeech_hybrid'
+    aiProvider: savedProvider, // 'gemini' | 'builtin' | 'coze'
     geminiApiKey: savedGeminiKey,
+    geminiServerConfigured: false,
     cozeBotId: savedCozeBotId,
     cozeApiToken: savedCozeToken,
     supabaseUrl: localStorage.getItem("logimentor_supabase_url") || "https://gcamnevqiwbdoqkfwexi.supabase.co",
@@ -129,7 +142,8 @@
       "btnBackHomeFromRoom", "roomTrackBadge", "roomLevelBadge", "roomDialectBadge",
       "questionStepperPills", "roomElapsedTimer", "btnFinishSessionEarly",
       "interviewLayoutGrid", "mentorStageCard", "mentorAvatarIcon", "mentorNameLabel", "mentorRoleChip",
-      "mentorStatusText", "waveformVisualizer", "voiceRateSelect", "btnReplayQuestionAudio", "chkEnableAiVoice", "chkEnableBargeIn",
+      "mentorStatusText", "waveformVisualizer", "voiceRateSelect", "btnReplayQuestionAudio",
+      "btnOpenVoiceStudioFromRoom", "roomVoiceEngineBadge", "chkHandsFreeMode", "chkEnableAiVoice", "chkEnableBargeIn",
       "chatStream", "keywordHintPanel", "hintKeywordsTags", "hintGuideBullets",
       "btnMicRecord", "micBtnLabel", "btnToggleKeywordHints",
       "starBadgeS", "starBadgeT", "starBadgeA", "starBadgeR",
@@ -147,7 +161,9 @@
       "quickStartModal", "qsDomainIconBox", "qsDomainCodeBadge", "qsDomainTitle", "qsCasePreviewText",
       "btnCloseQuickStart", "qsLevelGroup", "qsLangGroup", "qsStartModeGroup", "btnCancelQuickStart", "btnStartPracticeNow",
       "historyModal", "btnClearAllHistory", "btnCloseHistoryModal", "historySessionsList",
-      "apiConfigModal", "btnCloseApiModal", "sttEngineSelect", "aiProviderSelect", "geminiKeyFieldWrap",
+      "apiConfigModal", "btnCloseApiModal", "ttsEngineSelect", "studioVoiceSelect", "studioVoicePickerRow",
+      "btnTestStudioVoice", "geminiServerStatusBanner", "geminiServerStatusText",
+      "sttEngineSelect", "aiProviderSelect", "geminiKeyFieldWrap",
       "geminiApiKeyInput", "cozeConfigFieldWrap", "cozeBotIdInput", "cozeApiTokenInput",
       "chkRememberGeminiKey", "btnCancelApiModal", "btnSaveApiModal",
       "view-teacher", "btnOpenTeacherPortal", "btnBackHomeFromTeacher", "btnExportTeacherExcel",
@@ -434,20 +450,72 @@
       el.dmProgressFill.style.width = `${todaySessions >= 1 ? 100 : 12}%`;
     }
 
-    const isGeminiReady = state.aiProvider === "gemini" && Boolean(state.geminiApiKey);
+    const isGeminiReady =
+      hasGeminiCapability() &&
+      (state.aiProvider === "gemini" ||
+        state.ttsEngine === "gemini_studio" ||
+        state.sttEngine === "gemini_audio");
     const isCozeReady = state.aiProvider === "coze" && Boolean(state.cozeBotId && state.cozeApiToken);
     if (el.apiConnectionDot) {
       el.apiConnectionDot.classList.toggle("connected", isGeminiReady || isCozeReady);
     }
     if (el.apiStatusShortText) {
       el.apiStatusShortText.textContent = isGeminiReady
-        ? "Gemini 2.0 Live"
+        ? "✨ Gemini 2.5 Studio"
         : isCozeReady
         ? "Coze Bot Live"
-        : "Voice AI (0đ)";
+        : "Cài đặt Voice AI";
     }
-
+    updateGeminiBannerUI();
     renderDomainsGrid();
+  }
+
+  function hasGeminiCapability() {
+    return Boolean((state.geminiApiKey && state.geminiApiKey.trim()) || state.geminiServerConfigured);
+  }
+
+  async function detectServerGeminiStatus() {
+    const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+    if (!isHttp) {
+      updateGeminiBannerUI();
+      return;
+    }
+    try {
+      const resp = await fetch("/api/ai/status");
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.geminiServerConfigured) {
+          state.geminiServerConfigured = true;
+          if (!localStorage.getItem("logimentor_tts_engine")) state.ttsEngine = "gemini_studio";
+          if (!localStorage.getItem("logimentor_stt_engine")) state.sttEngine = "gemini_audio";
+          if (!localStorage.getItem("logimentor_provider")) state.aiProvider = "gemini";
+        }
+      }
+    } catch (_) {}
+    refreshNavbarGamificationPills();
+  }
+
+  function updateGeminiBannerUI() {
+    const ready = hasGeminiCapability();
+    if (el.geminiServerStatusBanner) {
+      el.geminiServerStatusBanner.classList.toggle("connected", ready);
+    }
+    if (el.geminiServerStatusText) {
+      if (state.geminiServerConfigured) {
+        el.geminiServerStatusText.innerHTML =
+          "✓ <strong>Đã kích hoạt Gemini 2.5 Studio trên máy chủ Vercel</strong> — Mọi sinh viên đều được dùng giọng đọc cảm xúc tự nhiên &amp; chấm điểm sâu không cần nhập khóa!";
+      } else if (state.geminiApiKey) {
+        el.geminiServerStatusText.innerHTML =
+          "✓ <strong>Đã kết nối khóa Gemini cá nhân</strong> — Sẵn sàng phát giọng Studio AI cảm xúc &amp; nghe hiểu song ngữ!";
+      } else {
+        el.geminiServerStatusText.innerHTML =
+          "💡 Dán <strong>Google Gemini API Key</strong> bên dưới (hoặc cài biến <code>GEMINI_API_KEY</code> trên Vercel) để mở khóa giọng đọc người thật Gemini 2.5 Studio!";
+      }
+    }
+    if (el.roomVoiceEngineBadge) {
+      el.roomVoiceEngineBadge.textContent =
+        ready && state.ttsEngine === "gemini_studio" ? "✨ Gemini 2.5 Studio" : "⚙️ Cài giọng Studio";
+    }
   }
 
   // ==================== ROUTING ====================
@@ -1106,7 +1174,155 @@
     }
   }
 
-  async function speakMentorText(rawText) {
+  // Bộ nhớ đệm âm thanh Studio WAV trong phiên làm việc (giúp Nghe lại & Chuyển câu phát tức thì 0ms!)
+  const geminiTtsBlobCache = new Map();
+
+  function resolveStudioVoiceName(level, voicePref) {
+    if (voicePref && voicePref !== "auto") return voicePref;
+    if (level === "Intern/Fresher") return "Aoede";
+    if (level === "Senior") return "Orus";
+    return "Charon";
+  }
+
+  function pcmBase64ToWavBlob(base64Pcm, sampleRate = 24000) {
+    const binaryStr = atob(base64Pcm);
+    const pcmLen = binaryStr.length;
+    const wavBuffer = new ArrayBuffer(44 + pcmLen);
+    const view = new DataView(wavBuffer);
+    const writeStr = (offset, str) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeStr(0, "RIFF");
+    view.setUint32(4, 36 + pcmLen, true);
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, "data");
+    view.setUint32(40, pcmLen, true);
+
+    const bytes = new Uint8Array(wavBuffer, 44);
+    for (let i = 0; i < pcmLen; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return new Blob([wavBuffer], { type: "audio/wav" });
+  }
+
+  async function fetchGeminiStudioAudioUrl(cleanText, lang, level, voicePref) {
+    if (!cleanText || !hasGeminiCapability()) return null;
+    const voiceName = resolveStudioVoiceName(level, voicePref);
+    const cacheKey = `${lang}|${voiceName}|${cleanText}`;
+
+    if (geminiTtsBlobCache.has(cacheKey)) {
+      return geminiTtsBlobCache.get(cacheKey);
+    }
+
+    const pendingPromise = (async () => {
+      const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+      // 1. Gọi qua Serverless /api/ai/tts trên Vercel (bảo mật GEMINI_API_KEY tuyệt đối)
+      if (isHttp) {
+        try {
+          const headers = { "Content-Type": "application/json" };
+          if (state.geminiApiKey) headers["x-gemini-api-key"] = state.geminiApiKey;
+          const resp = await fetch("/api/ai/tts", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              text: cleanText,
+              lang,
+              level,
+              voice: voiceName
+            })
+          });
+          if (resp.ok) {
+            const blob = await resp.blob();
+            if (blob && blob.size > 100) {
+              return URL.createObjectURL(blob);
+            }
+          }
+        } catch (_) {}
+      }
+
+      // 2. Fallback gọi trực tiếp Gemini 2.5 TTS nếu chạy file:// cục bộ có nhập khóa cá nhân
+      if (state.geminiApiKey) {
+        try {
+          const styleDir =
+            lang === "en"
+              ? "Say in a warm, natural, smooth conversational interviewer voice"
+              : "Say in a warm, natural, conversational Vietnamese interviewer voice with smooth human pacing";
+          const resp = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": state.geminiApiKey
+              },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `${styleDir}: ${cleanText}` }] }],
+                generationConfig: {
+                  responseModalities: ["AUDIO"],
+                  speechConfig: {
+                    voiceConfig: {
+                      prebuiltVoiceConfig: { voiceName }
+                    }
+                  }
+                }
+              })
+            }
+          );
+          if (resp.ok) {
+            const data = await resp.json();
+            const part = (data?.candidates?.[0]?.content?.parts || []).find(
+              p => p.inlineData && p.inlineData.data
+            );
+            if (part) {
+              const mime = String(part.inlineData.mimeType || "").toLowerCase();
+              const rateMatch = mime.match(/rate=(\d+)/);
+              const rate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+              const wavBlob = pcmBase64ToWavBlob(part.inlineData.data, rate);
+              return URL.createObjectURL(wavBlob);
+            }
+          }
+        } catch (_) {}
+      }
+      return null;
+    })();
+
+    geminiTtsBlobCache.set(cacheKey, pendingPromise);
+    const resolvedUrl = await pendingPromise;
+    if (!resolvedUrl) {
+      geminiTtsBlobCache.delete(cacheKey);
+    }
+    return resolvedUrl;
+  }
+
+  function prefetchNextQuestionStudioAudio(nextIdx) {
+    if (state.ttsEngine !== "gemini_studio" || !hasGeminiCapability()) return;
+    const nextQ = state.questionsPlan[nextIdx];
+    if (!nextQ) return;
+    const isEn = state.selectedLang === "en";
+    const qPrompt = isEn ? nextQ.question_text_en : nextQ.spoken_vi || nextQ.question_text;
+    const rawNextSpoken = isEn
+      ? `Let's move on to Question ${nextIdx + 1}. ${qPrompt}`
+      : adaptMentorToneByRegion(`Tiếp theo là câu hỏi số ${nextIdx + 1}: ${qPrompt}`);
+    const prepared = prepareCleanSpokenScript(rawNextSpoken, state.selectedLang);
+    setTimeout(() => {
+      fetchGeminiStudioAudioUrl(
+        prepared,
+        state.selectedLang,
+        state.selectedLevel,
+        state.studioVoice
+      ).catch(() => {});
+    }, 500);
+  }
+
+  async function speakMentorText(rawText, options = {}) {
     state.lastAiSpokenText = rawText;
     state.spokenClausesSoFar = [];
     state.questionAskedAt = Date.now();
@@ -1125,31 +1341,10 @@
     stopAllAiSpeech();
     const myToken = ++speechTokenCounter;
     state.isAiSpeaking = true;
-    startBargeInMonitor();
 
     const lang = state.selectedLang;
-    setMentorStageVisual(
-      "ai_asking",
-      lang === "en"
-        ? "AI Mentor is speaking (Speak over anytime to interrupt)..."
-        : "AI Mentor đang đặt câu hỏi (Có thể nói đè để ngắt lời nếu bật Barge-in)...",
-      true
-    );
-
+    const userRate = Number(state.voiceRate) || 1.0;
     const preparedScript = prepareCleanSpokenScript(rawText, lang);
-    const clauses = splitIntoBreathableClauses(preparedScript);
-    const voices = await ensureVoicesLoaded();
-    if (myToken !== speechTokenCounter) return;
-
-    // Đợi 45ms sau synth.cancel() và resume() để tránh lỗi trình duyệt Chrome/Edge im lặng
-    await new Promise(r => setTimeout(r, 45));
-    if (myToken !== speechTokenCounter) return;
-    if (synth && synth.paused) {
-      try { synth.resume(); } catch (_) {}
-    }
-
-    const { multilingualViVoice, viVoice, enVoice } = pickBestVoices(voices);
-    const userRate = Number(state.voiceRate) || 0.96;
 
     const finishSpeaking = () => {
       if (myToken !== speechTokenCounter) return;
@@ -1159,13 +1354,100 @@
       setMentorStageVisual(
         "ai_asking",
         lang === "en"
-          ? "Your turn! Speak via Mic or edit your answer freely."
-          : "Tới lượt bạn! Bấm Mic để nói hoặc bấm máy tính & sửa thuật ngữ thoải mái.",
+          ? "Your turn! Speak naturally or calculate & type freely."
+          : "Tới lượt bạn! Hãy nói tự nhiên qua Mic hoặc bấm máy tính bên phải.",
         false
       );
+
+      // Tự động mở Mic đàm thoại rảnh tay (Hands-Free Voice-to-Voice) mượt mà sau 360ms
+      if (
+        !options.skipAutoListen &&
+        state.handsFreeMode &&
+        state.currentView === "interview" &&
+        !state.isMicRecording &&
+        !state.isAnalyzing
+      ) {
+        setTimeout(() => {
+          if (
+            myToken === speechTokenCounter &&
+            state.currentView === "interview" &&
+            !state.isAiSpeaking &&
+            !state.isMicRecording &&
+            !state.isAnalyzing
+          ) {
+            startHandsFreeOrManualMic(el.answerTranscriptInput, null);
+          }
+        }, 360);
+      }
     };
 
-    // 1. Chỉ dùng SpeechSynthesis khi máy có giọng đọc Neural chất lượng cao (Edge Natural / Google / Apple), tránh giọng SAPI5 robot cũ
+    // ƯU TIÊN SỐ 1: GEMINI 2.5 STUDIO NEURAL TTS (Giọng người thật giàu cảm xúc, đọc mượt cả đoạn 24kHz WAV)
+    if (state.ttsEngine === "gemini_studio" && hasGeminiCapability()) {
+      setMentorStageVisual(
+        "ai_asking",
+        lang === "en"
+          ? "✨ Preparing Studio Mentor voice..."
+          : "✨ AI Mentor đang chuẩn bị giọng nói Studio...",
+        true
+      );
+
+      const studioAudioUrl = await fetchGeminiStudioAudioUrl(
+        preparedScript,
+        lang,
+        state.selectedLevel,
+        state.studioVoice
+      );
+      if (myToken !== speechTokenCounter) return;
+
+      if (studioAudioUrl) {
+        const audio = new Audio(studioAudioUrl);
+        audio.playbackRate = Math.max(0.88, Math.min(1.15, userRate));
+        activeAudioEl = audio;
+        startBargeInMonitor();
+
+        setMentorStageVisual(
+          "ai_asking",
+          lang === "en"
+            ? "🎙️ AI Mentor is speaking (Studio Neural Voice)..."
+            : "🎙️ AI Mentor đang trao đổi trực tiếp (Giọng Gemini 2.5 Studio)...",
+          true
+        );
+
+        audio.onended = () => {
+          if (myToken !== speechTokenCounter) return;
+          state.spokenClausesSoFar = [preparedScript];
+          finishSpeaking();
+        };
+
+        try {
+          await audio.play();
+          return;
+        } catch (_) {
+          // Nếu trình duyệt chặn hoặc lỗi phát, chuyển mượt xuống giọng dự phòng bên dưới
+        }
+      }
+    }
+
+    // ƯU TIÊN SỐ 2 (DỰ PHÒNG): Web Speech Neural hoặc Serverless Audio Stream
+    startBargeInMonitor();
+    setMentorStageVisual(
+      "ai_asking",
+      lang === "en"
+        ? "AI Mentor is speaking (Speak over anytime to interrupt)..."
+        : "AI Mentor đang đặt câu hỏi (Có thể nói đè để ngắt lời nếu bật Ngắt lời)...",
+      true
+    );
+
+    const voices = await ensureVoicesLoaded();
+    if (myToken !== speechTokenCounter) return;
+
+    await new Promise(r => setTimeout(r, 45));
+    if (myToken !== speechTokenCounter) return;
+    if (synth && synth.paused) {
+      try { synth.resume(); } catch (_) {}
+    }
+
+    const { multilingualViVoice, viVoice, enVoice } = pickBestVoices(voices);
     const hasViVoice = Boolean(multilingualViVoice || viVoice);
     const hasEnVoice = Boolean(enVoice);
     const canUseSpeechSynthesis = synth && (lang === "en" ? hasEnVoice : hasViVoice);
@@ -1198,7 +1480,6 @@
         playSeamlessAudioStream(preparedScript, lang, userRate, myToken, finishSpeaking);
       };
 
-      // Safeguard: nếu trình duyệt im lặng không kích hoạt onstart sau 1200ms, tự động chuyển sang Audio Stream
       setTimeout(() => {
         if (!started && myToken === speechTokenCounter && state.isAiSpeaking) {
           try { synth.cancel(); } catch (_) {}
@@ -1212,7 +1493,6 @@
       } catch (_) {}
     }
 
-    // 2. Fallback: Phát qua Serverless TTS Audio Stream (/api/tts) theo từng câu hoàn chỉnh mượt mà
     playSeamlessAudioStream(preparedScript, lang, userRate, myToken, finishSpeaking);
   }
 
@@ -1356,11 +1636,13 @@
     return text;
   }
 
+  let turnVoiceActiveFrames = 0;
+  let turnLastVoiceMs = 0;
+
   async function startMicAudioCaptureAndWaveform() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
     try {
       if (!mediaStream || !mediaStream.active) {
-        // Bật chuẩn WebRTC AEC (Chống dội âm loa) + Lọc ồn nền + Cân bằng âm lượng cho STT & Barge-in
         mediaStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
@@ -1371,13 +1653,22 @@
         });
       }
       recordedChunks = [];
+      turnVoiceActiveFrames = 0;
+      turnLastVoiceMs = performance.now();
+
       if (typeof MediaRecorder !== "undefined") {
-        const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-          ? "audio/webm;codecs=opus"
-          : "";
-        mediaRecorder = mime
-          ? new MediaRecorder(mediaStream, { mimeType: mime })
-          : new MediaRecorder(mediaStream);
+        const preferredMimes = [
+          "audio/webm;codecs=opus",
+          "audio/webm",
+          "audio/mp4",
+          "audio/ogg;codecs=opus"
+        ];
+        const chosenMime =
+          preferredMimes.find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || "";
+        const recOptions = chosenMime
+          ? { mimeType: chosenMime, audioBitsPerSecond: 32000 }
+          : { audioBitsPerSecond: 32000 };
+        mediaRecorder = new MediaRecorder(mediaStream, recOptions);
         mediaRecorder.ondataavailable = e => {
           if (e.data && e.data.size > 0) recordedChunks.push(e.data);
         };
@@ -1402,21 +1693,120 @@
         const renderBars = () => {
           if (!state.isMicRecording || !analyserNode) return;
           analyserNode.getByteFrequencyData(dataArr);
+          let energySum = 0;
+          const voiceBins = Math.min(28, dataArr.length);
+          for (let k = 2; k < voiceBins; k++) {
+            energySum += dataArr[k];
+          }
+          const avgVoiceEnergy = energySum / Math.max(1, voiceBins - 2);
+
+          if (avgVoiceEnergy > 26) {
+            turnVoiceActiveFrames++;
+            turnLastVoiceMs = performance.now();
+            if (!state.firstTypedOrSpokenAt) state.firstTypedOrSpokenAt = Date.now();
+          }
+
           bars.forEach((bar, i) => {
             const v = dataArr[(i * 2) % dataArr.length] || 0;
             const h = Math.max(6, Math.min(30, Math.round((v / 255) * 30)));
             bar.style.height = `${h}px`;
           });
+
+          // Nhận diện kết thúc câu nói tự nhiên cho chế độ Đàm thoại tự động (Hands-Free Voice-to-Voice):
+          // Đã nói thực sự >= 35 frames (~0.65s tiếng nói) + ngừng nghỉ tự nhiên 2.5s + không đang bấm Máy tính mini
+          const nowMs = performance.now();
+          const recentlyUsedCalc = Date.now() - (state.lastManualCalcOrTypeAt || 0) < 4800;
+          if (
+            state.handsFreeMode &&
+            state.currentView === "interview" &&
+            state.activeMicTargetTextarea === el.answerTranscriptInput &&
+            !state.isAnalyzing &&
+            !recentlyUsedCalc &&
+            turnVoiceActiveFrames >= 35 &&
+            nowMs - turnLastVoiceMs >= 2500
+          ) {
+            const draftWords = (el.answerTranscriptInput?.value || "").trim().split(/\s+/).filter(Boolean).length;
+            const canSubmitAudioDirectly = hasGeminiCapability() && state.sttEngine === "gemini_audio";
+            if (draftWords >= 4 || canSubmitAudioDirectly) {
+              turnVoiceActiveFrames = 0;
+              handleRoomSubmitAnswer();
+              return;
+            }
+          }
+
           freqAnimId = requestAnimationFrame(renderBars);
         };
         renderBars();
       }
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /**
-   * Tầng 1 STT Nâng cao (Tùy chọn): Gửi Audio đã thu âm sang Gemini 2.0 Flash Multimodal
-   * để phiên âm chuẩn xác 95-98% tiếng Việt pha thuật ngữ tiếng Anh Logistics (Vietlish).
+   * Gửi Audio + Ngữ cảnh câu hỏi lên /api/ai/voice-turn (Gemini 2.5 Flash Multimodal)
+   * để vừa phiên âm chuẩn xác tiếng Việt + thuật ngữ Logistics, vừa sinh phản hồi đối thoại mượt như HR thật!
+   */
+  async function runGeminiVoiceTurn(audioDataUrl, draftText, qObj, qIdx) {
+    if (!hasGeminiCapability()) return null;
+    const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+    const isEn = state.selectedLang === "en";
+    const track = getActiveTrack();
+    const mentor = getActiveMentor();
+    const alreadyAskedFollowup = Boolean(state.hasAskedFollowUpByQ[qIdx]);
+    const nextUnansweredIdx = state.questionsPlan.findIndex((_, i) => i > qIdx && !state.qaAnswersByQ[i]);
+    const anyRemainingIdx = state.questionsPlan.findIndex((_, i) => i !== qIdx && !state.qaAnswersByQ[i]);
+    const targetNextIdx = nextUnansweredIdx !== -1 ? nextUnansweredIdx : anyRemainingIdx;
+
+    const payload = {
+      audioDataUrl: audioDataUrl || "",
+      draftText: draftText || "",
+      lang: state.selectedLang,
+      level: state.selectedLevel,
+      mentorName: isEn ? mentor.nameEn || mentor.name : mentor.name,
+      trackName: isEn ? track.nameEn : track.name,
+      questionText: isEn ? qObj.question_text_en : qObj.question_text,
+      expectedKeywords: qObj.expected_keywords || [],
+      caseHint: qObj.case_study_board?.unit_hint || "",
+      fallbackProbe: isEn ? qObj.followup_probe_en : qObj.followup_probe_vi,
+      alreadyAskedFollowup,
+      hasNextQuestion: targetNextIdx !== -1,
+      nextQuestionNumber: targetNextIdx !== -1 ? targetNextIdx + 1 : state.questionsPlan.length
+    };
+
+    if (isHttp) {
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (state.geminiApiKey) headers["x-gemini-api-key"] = state.geminiApiKey;
+        const resp = await fetch("/api/ai/voice-turn", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          return await resp.json();
+        }
+      } catch (_) {}
+    }
+
+    // Fallback nếu chạy file:// cục bộ mà có khóa Gemini cá nhân: tối thiểu phiên âm chuẩn bằng Gemini 2.5 Flash
+    if (audioDataUrl && state.geminiApiKey) {
+      const refined = await transcribeAudioWithGemini(audioDataUrl, track);
+      if (refined) {
+        return {
+          transcript: refined,
+          needs_followup: false,
+          display_reply: "",
+          spoken_reply: ""
+        };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Phiên âm dự phòng trực tiếp qua Gemini 2.5 Flash Multimodal khi mở file:// cục bộ
    */
   async function transcribeAudioWithGemini(audioDataUrl, track) {
     if (!audioDataUrl || !state.geminiApiKey) return "";
@@ -1429,7 +1819,7 @@
 
     try {
       const resp = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
         {
           method: "POST",
           headers: {
@@ -1535,7 +1925,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
         }
         const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || "audio/webm" });
         const audioUrl = URL.createObjectURL(blob);
-        if (blob.size <= 350 * 1024) {
+        // Nâng trần dung lượng lên 3.5 MB (ở chuẩn Opus 32kbps thu thoải mái hơn 10 phút liên tục!)
+        if (blob.size <= 3.5 * 1024 * 1024) {
           const reader = new FileReader();
           reader.onloadend = () => resolve({ audioUrl, audioDataUrl: String(reader.result || "") });
           reader.onerror = () => resolve({ audioUrl, audioDataUrl: "" });
@@ -1552,6 +1943,33 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     });
   }
 
+  function setMicActiveUI(targetTextarea, retryBtnEl) {
+    state.isMicRecording = true;
+    const isEn = state.selectedLang === "en";
+    if (targetTextarea === el.answerTranscriptInput) {
+      if (el.btnMicRecord) el.btnMicRecord.classList.add("recording");
+      if (el.micBtnLabel) {
+        el.micBtnLabel.textContent = isEn
+          ? "Listening... (Click to pause Mic)"
+          : "Đang lắng nghe bạn... (Bấm để dừng)";
+      }
+      setMentorStageVisual(
+        "user_answering",
+        isEn
+          ? state.handsFreeMode
+            ? "🎙️ Listening hands-free — Speak naturally; pause 2.5s when finished to auto-send!"
+            : "🎙️ Listening — Pause anytime to calculate or edit text."
+          : state.handsFreeMode
+          ? "🎙️ Đang lắng nghe tự động — Cứ nói tự nhiên, dừng 2.5 giây khi chốt ý AI sẽ tự đáp lại!"
+          : "🎙️ Bạn đang trả lời — Cứ dừng lại tính toán thoải mái, bấm Gửi khi hoàn tất.",
+        true
+      );
+    } else if (retryBtnEl) {
+      retryBtnEl.textContent = isEn ? "Recording... (Click to stop)" : "Đang thu âm... (Bấm để dừng)";
+      retryBtnEl.classList.add("recording");
+    }
+  }
+
   function initSpeechRecognition() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) return;
@@ -1561,21 +1979,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      state.isMicRecording = true;
-      if (state.activeMicTargetTextarea === el.answerTranscriptInput) {
-        if (el.btnMicRecord) el.btnMicRecord.classList.add("recording");
-        if (el.micBtnLabel) el.micBtnLabel.textContent = "Đang thu âm... (Bấm để dừng Mic)";
-        setMentorStageVisual(
-          "user_answering",
-          state.selectedLang === "en"
-            ? "Listening to you — Pause anytime to calculate or edit text."
-            : "Bạn đang trả lời — Cứ dừng lại tính toán thoải mái, không tự động ngắt câu.",
-          true
-        );
-      } else if (state.activeMicRetryBtn) {
-        state.activeMicRetryBtn.textContent = "Đang thu âm... (Bấm để dừng)";
-        state.activeMicRetryBtn.classList.add("recording");
-      }
+      setMicActiveUI(state.activeMicTargetTextarea, state.activeMicRetryBtn);
     };
 
     recognition.onresult = event => {
@@ -1583,6 +1987,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       if (!targetBox) return;
 
       if (!state.firstTypedOrSpokenAt) state.firstTypedOrSpokenAt = Date.now();
+      turnLastVoiceMs = performance.now();
+      turnVoiceActiveFrames = Math.max(turnVoiceActiveFrames, 36);
 
       let sessionFinal = "";
       let sessionInterim = "";
@@ -1611,7 +2017,6 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     recognition.onerror = () => {};
 
     recognition.onend = () => {
-      // Giữ luồng nghe liên tục kể cả khi sinh viên ngừng nói lâu để tính toán (không tự ngắt câu)
       if (!state.userStoppedMic && state.isMicRecording) {
         const targetBox = state.activeMicTargetTextarea || el.answerTranscriptInput;
         if (targetBox) state.committedSpeechPrefix = targetBox.value.trim();
@@ -1620,49 +2025,41 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
           return;
         } catch (_) {}
       }
-
-      state.isMicRecording = false;
-      if (el.btnMicRecord) el.btnMicRecord.classList.remove("recording");
-      if (el.micBtnLabel) el.micBtnLabel.textContent = "Bấm để nói tiếp (Alt + M)";
-      if (state.activeMicRetryBtn) {
-        state.activeMicRetryBtn.textContent = "Ghi âm giọng nói";
-        state.activeMicRetryBtn.classList.remove("recording");
-      }
-      if (!state.isAnalyzing && !state.isAiSpeaking) {
-        setMentorStageVisual(
-          "ai_asking",
-          "Bạn có thể chỉnh sửa lại thuật ngữ tiếng Anh rồi bấm 'Hoàn thành & Gửi câu trả lời'.",
-          false
-        );
-      }
     };
   }
 
-  function toggleMicForTextarea(targetTextarea, retryBtnEl = null) {
+  async function startHandsFreeOrManualMic(targetTextarea, retryBtnEl = null) {
     if (state.isAiSpeaking) stopAllAiSpeech();
-    if (!recognition) {
-      if (targetTextarea) targetTextarea.focus();
-      if (el.micLiveNotice) {
-        el.micLiveNotice.textContent =
-          "Trình duyệt hiện tại không hỗ trợ nhận diện giọng nói. Vui lòng nhập trực tiếp hoặc mở trên Chrome / Edge.";
-      }
-      return;
-    }
-
-    if (state.isMicRecording) {
-      stopMicRecording();
-      return;
-    }
-
     state.activeMicTargetTextarea = targetTextarea;
     state.activeMicRetryBtn = retryBtnEl;
     state.userStoppedMic = false;
     state.committedSpeechPrefix = targetTextarea ? targetTextarea.value.trim() : "";
-    recognition.lang = state.selectedLang === "en" ? "en-US" : "vi-VN";
-    startMicAudioCaptureAndWaveform();
-    try {
-      recognition.start();
-    } catch (_) {}
+
+    setMicActiveUI(targetTextarea, retryBtnEl);
+    const streamOk = await startMicAudioCaptureAndWaveform();
+
+    if (recognition) {
+      recognition.lang = state.selectedLang === "en" ? "en-US" : "vi-VN";
+      try {
+        recognition.start();
+      } catch (_) {}
+    } else if (!streamOk) {
+      stopMicRecording();
+      if (targetTextarea) targetTextarea.focus();
+      if (el.micLiveNotice) {
+        el.micLiveNotice.textContent =
+          "Vui lòng cấp quyền Micro cho trình duyệt hoặc nhập trực tiếp câu trả lời vào ô bên trên.";
+      }
+    }
+  }
+
+  function toggleMicForTextarea(targetTextarea, retryBtnEl = null) {
+    if (state.isAiSpeaking) stopAllAiSpeech();
+    if (state.isMicRecording) {
+      stopMicRecording();
+      return;
+    }
+    startHandsFreeOrManualMic(targetTextarea, retryBtnEl);
   }
 
   function stopMicRecording() {
@@ -1678,7 +2075,10 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       } catch (_) {}
     }
     if (el.btnMicRecord) el.btnMicRecord.classList.remove("recording");
-    if (el.micBtnLabel) el.micBtnLabel.textContent = "Bấm để nói tiếp (Alt + M)";
+    if (el.micBtnLabel) {
+      el.micBtnLabel.textContent =
+        state.selectedLang === "en" ? "Click to Speak (Alt + M)" : "Bấm để nói (Alt + M)";
+    }
     if (state.activeMicRetryBtn) {
       state.activeMicRetryBtn.textContent = "Ghi âm giọng nói";
       state.activeMicRetryBtn.classList.remove("recording");
@@ -1835,7 +2235,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     if (el.starBadgeR) el.starBadgeR.classList.toggle("lit", hasR);
   }
 
-  function loadQuestionIntoRoom(qIdx, isInitialGreeting) {
+  function loadQuestionIntoRoom(qIdx, isInitialGreeting, leadInDisplay = "", leadInSpoken = "") {
     const q = state.questionsPlan[qIdx];
     if (!q) return;
 
@@ -1873,12 +2273,22 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
         spokenMsg = `Chào bạn! Mình là ${mentor.spokenNameVi || mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.spokenNameVi || track.name} nhé. Câu hỏi số ${qIdx + 1} dành cho bạn: ${q.spoken_vi || qPrompt}`;
       }
     } else {
+      const cleanLeadDisp = (leadInDisplay || "").trim();
+      const cleanLeadSpoken = (leadInSpoken || "").trim();
       if (isEn) {
-        displayMsg = `Question ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
-        spokenMsg = `Let's move on to Question ${qIdx + 1}. ${qPrompt}`;
+        displayMsg = cleanLeadDisp
+          ? `${cleanLeadDisp}\n\nQuestion ${qIdx + 1} — ${qTitle}:\n${qPrompt}`
+          : `Question ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = cleanLeadSpoken
+          ? `${cleanLeadSpoken} Now let's move on to Question ${qIdx + 1}. ${qPrompt}`
+          : `Let's move on to Question ${qIdx + 1}. ${qPrompt}`;
       } else {
-        displayMsg = `Câu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
-        spokenMsg = `Tiếp theo là câu hỏi số ${qIdx + 1}: ${q.spoken_vi || qPrompt}`;
+        displayMsg = cleanLeadDisp
+          ? `${cleanLeadDisp}\n\nCâu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`
+          : `Câu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
+        spokenMsg = cleanLeadSpoken
+          ? `${cleanLeadSpoken} Bây giờ chúng ta sang câu hỏi số ${qIdx + 1} nhé: ${q.spoken_vi || qPrompt}`
+          : `Tiếp theo là câu hỏi số ${qIdx + 1}: ${q.spoken_vi || qPrompt}`;
       }
     }
 
@@ -1886,6 +2296,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const adaptedSpoken = adaptMentorToneByRegion(spokenMsg);
     appendChatBubble("ai", adaptedDisplay, isEn ? `Question ${qIdx + 1}` : `Câu ${qIdx + 1}`, false);
     speakMentorText(adaptedSpoken);
+    prefetchNextQuestionStudioAudio(qIdx + 1);
   }
 
   function updateCaseStudyPanelForQuestion(q) {
@@ -2146,6 +2557,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
   }
 
   function handleCalculatorInput(key) {
+    state.lastManualCalcOrTypeAt = Date.now();
     if (key === "C") {
       resetMiniCalculator();
       return;
@@ -2209,27 +2621,41 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       recorded = await stopAndCollectRecordedAudio();
     }
 
+    const qIdx = state.currentQIndex;
+    const qObj = state.questionsPlan[qIdx];
+    const isEnSession = state.selectedLang === "en";
     let rawInput = el.answerTranscriptInput ? el.answerTranscriptInput.value.trim() : "";
 
-    // Tầng 1 STT Nâng cao: Nếu bật Gemini Audio STT & có bản thu âm -> Phiên âm lại cực chuẩn Vietlish
-    if (
-      state.sttEngine === "gemini_audio" &&
-      state.geminiApiKey &&
-      recorded.audioDataUrl
-    ) {
+    // Nếu cả chữ lẫn file âm thanh đều rỗng thì bỏ qua
+    if (!rawInput && !recorded.audioDataUrl) {
+      if (el.answerTranscriptInput) el.answerTranscriptInput.focus();
+      return;
+    }
+
+    state.isAnalyzing = true;
+    if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = true;
+
+    let geminiTurnResult = null;
+    const useGeminiTurn =
+      hasGeminiCapability() &&
+      (state.aiProvider === "gemini" || (state.sttEngine === "gemini_audio" && recorded.audioDataUrl));
+
+    if (useGeminiTurn) {
       setMentorStageVisual(
         "ai_analyzing",
-        "Đang chuẩn hóa phiên âm giọng nói Vietlish qua Gemini 2.0 Audio STT...",
+        isEnSession
+          ? "✨ AI Mentor is listening & thinking..."
+          : "✨ AI Mentor đang lắng nghe và suy nghĩ phản hồi trực tiếp...",
         false
       );
-      const refinedTranscript = await transcribeAudioWithGemini(
-        recorded.audioDataUrl,
-        getActiveTrack()
-      );
-      if (refinedTranscript) {
-        rawInput = refinedTranscript;
+      geminiTurnResult = await runGeminiVoiceTurn(recorded.audioDataUrl, rawInput, qObj, qIdx);
+      if (geminiTurnResult && geminiTurnResult.transcript && geminiTurnResult.transcript.trim()) {
+        rawInput = geminiTurnResult.transcript.trim();
       }
     }
+
+    state.isAnalyzing = false;
+    if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = false;
 
     if (!rawInput) {
       if (el.answerTranscriptInput) el.answerTranscriptInput.focus();
@@ -2239,8 +2665,6 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const cleanAnswer = state.selectedLang === "vi" ? applyPhoneticVietlishFix(rawInput) : rawInput;
     detectVietnameseDialect(cleanAnswer);
 
-    const qIdx = state.currentQIndex;
-    const qObj = state.questionsPlan[qIdx];
     const wordCount = cleanAnswer.split(/\s+/).filter(Boolean).length;
     const latencySec =
       state.questionAskedAt && state.firstTypedOrSpokenAt
@@ -2251,7 +2675,6 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
           )
         : 3.5;
 
-    const isEnSession = state.selectedLang === "en";
     appendChatBubble(
       "user",
       cleanAnswer,
@@ -2270,8 +2693,11 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const missedCaseConstraint =
       qObj.followup_rule_regex && !new RegExp(qObj.followup_rule_regex, "i").test(cleanAnswer);
     const tooBrief = wordCount < 20;
+    const shouldAskFollowup =
+      !state.hasAskedFollowUpByQ[qIdx] &&
+      (geminiTurnResult ? Boolean(geminiTurnResult.needs_followup) : missedCaseConstraint || tooBrief);
 
-    if (!state.hasAskedFollowUpByQ[qIdx] && (missedCaseConstraint || tooBrief)) {
+    if (shouldAskFollowup) {
       state.hasAskedFollowUpByQ[qIdx] = true;
       state.primaryDraftByQ[qIdx] = {
         text: cleanAnswer,
@@ -2281,11 +2707,10 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       };
 
       const isEn = state.selectedLang === "en";
-      let displayProbe = "";
-      let spokenProbe = "";
+      let displayProbe = geminiTurnResult?.display_reply || "";
+      let spokenProbe = geminiTurnResult?.spoken_reply || displayProbe;
 
-      // Nếu đang kết nối Brain Coze Bot (coze.com), gọi Coze với AbortController (hỗ trợ hủy khi Barge-in)
-      if (state.aiProvider === "coze" && state.cozeBotId && state.cozeApiToken) {
+      if (!displayProbe && state.aiProvider === "coze" && state.cozeBotId && state.cozeApiToken) {
         abortPendingBrainRequests();
         state.activeBrainAbortController = new AbortController();
         state.isAnalyzing = true;
@@ -2350,20 +2775,28 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const targetNextIdx = nextUnansweredIdx !== -1 ? nextUnansweredIdx : anyRemainingIdx;
 
     if (targetNextIdx !== -1) {
-      state.isAnalyzing = true;
-      if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = true;
-      setMentorStageVisual(
-        "ai_analyzing",
-        "AI Mentor đang phân tích câu trả lời và chuẩn bị tình huống tiếp theo...",
-        false
-      );
-
-      await new Promise(r => setTimeout(r, 600));
-      state.isAnalyzing = false;
-      if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = false;
+      if (!geminiTurnResult) {
+        state.isAnalyzing = true;
+        if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = true;
+        setMentorStageVisual(
+          "ai_analyzing",
+          isEnSession
+            ? "AI Mentor is preparing the next scenario..."
+            : "AI Mentor đang chuẩn bị tình huống tiếp theo...",
+          false
+        );
+        await new Promise(r => setTimeout(r, 380));
+        state.isAnalyzing = false;
+        if (el.btnSubmitAnswer) el.btnSubmitAnswer.disabled = false;
+      }
 
       state.currentQIndex = targetNextIdx;
-      loadQuestionIntoRoom(targetNextIdx, false);
+      loadQuestionIntoRoom(
+        targetNextIdx,
+        false,
+        geminiTurnResult?.display_reply || "",
+        geminiTurnResult?.spoken_reply || ""
+      );
     } else {
       await finalizeSessionAndOpenReport();
     }
@@ -2682,7 +3115,7 @@ QUY TẮC:
     if (state.aiProvider === "gemini" && state.geminiApiKey) {
       try {
         const resp = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
           {
             method: "POST",
             headers: {
@@ -3657,9 +4090,14 @@ QUY TẮC:
     }
 
     const syncApiModalFieldsVisibility = () => {
+      const ttsVal = el.ttsEngineSelect ? el.ttsEngineSelect.value : state.ttsEngine;
       const providerVal = el.aiProviderSelect ? el.aiProviderSelect.value : state.aiProvider;
       const sttVal = el.sttEngineSelect ? el.sttEngineSelect.value : state.sttEngine;
-      const needGemini = providerVal === "gemini" || sttVal === "gemini_audio";
+      const needGemini =
+        ttsVal === "gemini_studio" || providerVal === "gemini" || sttVal === "gemini_audio";
+      if (el.studioVoicePickerRow) {
+        el.studioVoicePickerRow.style.display = ttsVal === "gemini_studio" ? "flex" : "none";
+      }
       if (el.geminiKeyFieldWrap) {
         el.geminiKeyFieldWrap.style.display = needGemini ? "block" : "none";
       }
@@ -3668,18 +4106,29 @@ QUY TẮC:
       }
     };
 
+    const openStudioConfigModal = () => {
+      if (el.ttsEngineSelect) el.ttsEngineSelect.value = state.ttsEngine;
+      if (el.studioVoiceSelect) el.studioVoiceSelect.value = state.studioVoice;
+      if (el.sttEngineSelect) el.sttEngineSelect.value = state.sttEngine;
+      if (el.aiProviderSelect) el.aiProviderSelect.value = state.aiProvider;
+      if (el.geminiApiKeyInput) el.geminiApiKeyInput.value = state.geminiApiKey;
+      if (el.cozeBotIdInput) el.cozeBotIdInput.value = state.cozeBotId;
+      if (el.cozeApiTokenInput) el.cozeApiTokenInput.value = state.cozeApiToken;
+      if (el.supabaseUrlInput) el.supabaseUrlInput.value = state.supabaseUrl;
+      if (el.supabaseAnonKeyInput) el.supabaseAnonKeyInput.value = state.supabaseAnonKey;
+      updateGeminiBannerUI();
+      syncApiModalFieldsVisibility();
+      el.apiConfigModal?.classList.add("open");
+    };
+
     if (el.btnOpenApiModal) {
-      el.btnOpenApiModal.addEventListener("click", () => {
-        if (el.sttEngineSelect) el.sttEngineSelect.value = state.sttEngine;
-        if (el.aiProviderSelect) el.aiProviderSelect.value = state.aiProvider;
-        if (el.geminiApiKeyInput) el.geminiApiKeyInput.value = state.geminiApiKey;
-        if (el.cozeBotIdInput) el.cozeBotIdInput.value = state.cozeBotId;
-        if (el.cozeApiTokenInput) el.cozeApiTokenInput.value = state.cozeApiToken;
-        if (el.supabaseUrlInput) el.supabaseUrlInput.value = state.supabaseUrl;
-        if (el.supabaseAnonKeyInput) el.supabaseAnonKeyInput.value = state.supabaseAnonKey;
-        syncApiModalFieldsVisibility();
-        el.apiConfigModal?.classList.add("open");
-      });
+      el.btnOpenApiModal.addEventListener("click", openStudioConfigModal);
+    }
+    if (el.btnOpenVoiceStudioFromRoom) {
+      el.btnOpenVoiceStudioFromRoom.addEventListener("click", openStudioConfigModal);
+    }
+    if (el.ttsEngineSelect) {
+      el.ttsEngineSelect.addEventListener("change", syncApiModalFieldsVisibility);
     }
     if (el.aiProviderSelect) {
       el.aiProviderSelect.addEventListener("change", syncApiModalFieldsVisibility);
@@ -3687,13 +4136,58 @@ QUY TẮC:
     if (el.sttEngineSelect) {
       el.sttEngineSelect.addEventListener("change", syncApiModalFieldsVisibility);
     }
+    if (el.btnTestStudioVoice) {
+      el.btnTestStudioVoice.addEventListener("click", async () => {
+        unlockAudioPlayback();
+        const tempKey = el.geminiApiKeyInput ? el.geminiApiKeyInput.value.trim() : state.geminiApiKey;
+        if (tempKey) state.geminiApiKey = tempKey;
+        const chosenVoice = el.studioVoiceSelect ? el.studioVoiceSelect.value : state.studioVoice;
+
+        if (!hasGeminiCapability()) {
+          if (el.geminiApiKeyInput) el.geminiApiKeyInput.focus();
+          alert("Vui lòng dán Google Gemini API Key vào ô bên dưới (hoặc cài GEMINI_API_KEY trên Vercel) để nghe thử giọng Studio!");
+          return;
+        }
+
+        const origLabel = el.btnTestStudioVoice.textContent;
+        el.btnTestStudioVoice.textContent = "⏳ Đang tạo giọng...";
+        el.btnTestStudioVoice.disabled = true;
+
+        const sampleText =
+          state.selectedLang === "en"
+            ? "Hello! Welcome to your Logistics interview session. Take a deep breath, and whenever you're ready, walk me through your approach."
+            : "Chào bạn! Rất vui được đồng hành cùng bạn trong buổi phỏng vấn thực chiến hôm nay. Bạn cứ bình tĩnh suy nghĩ và chia sẻ hướng xử lý của mình nhé!";
+
+        try {
+          const wavUrl = await fetchGeminiStudioAudioUrl(
+            sampleText,
+            state.selectedLang,
+            state.selectedLevel,
+            chosenVoice
+          );
+          if (wavUrl) {
+            stopAllAiSpeech();
+            const a = new Audio(wavUrl);
+            activeAudioEl = a;
+            await a.play();
+          } else {
+            alert("Không tạo được âm thanh Studio. Bạn vui lòng kiểm tra lại khóa Gemini API Key nhé!");
+          }
+        } catch (_) {}
+        el.btnTestStudioVoice.textContent = origLabel;
+        el.btnTestStudioVoice.disabled = false;
+      });
+    }
+
     [el.btnCloseApiModal, el.btnCancelApiModal].forEach(b => {
       if (b) b.addEventListener("click", () => el.apiConfigModal?.classList.remove("open"));
     });
     if (el.btnSaveApiModal) {
       el.btnSaveApiModal.addEventListener("click", () => {
-        state.sttEngine = el.sttEngineSelect ? el.sttEngineSelect.value : "webspeech_hybrid";
-        state.aiProvider = el.aiProviderSelect ? el.aiProviderSelect.value : "builtin";
+        state.ttsEngine = el.ttsEngineSelect ? el.ttsEngineSelect.value : "gemini_studio";
+        state.studioVoice = el.studioVoiceSelect ? el.studioVoiceSelect.value : "auto";
+        state.sttEngine = el.sttEngineSelect ? el.sttEngineSelect.value : "gemini_audio";
+        state.aiProvider = el.aiProviderSelect ? el.aiProviderSelect.value : "gemini";
         state.geminiApiKey = el.geminiApiKeyInput ? el.geminiApiKeyInput.value.trim() : "";
         state.cozeBotId = el.cozeBotIdInput ? el.cozeBotIdInput.value.trim() : "";
         state.cozeApiToken = el.cozeApiTokenInput ? el.cozeApiTokenInput.value.trim() : "";
@@ -3704,25 +4198,31 @@ QUY TẮC:
         localStorage.setItem("logimentor_supabase_url", state.supabaseUrl);
         localStorage.setItem("logimentor_supabase_anon_key", state.supabaseAnonKey);
 
+        sessionStorage.setItem("logimentor_tts_engine", state.ttsEngine);
+        sessionStorage.setItem("logimentor_studio_voice", state.studioVoice);
         sessionStorage.setItem("logimentor_stt_engine", state.sttEngine);
         sessionStorage.setItem("logimentor_provider", state.aiProvider);
         sessionStorage.setItem("logimentor_gemini_key", state.geminiApiKey);
         sessionStorage.setItem("logimentor_coze_bot_id", state.cozeBotId);
         sessionStorage.setItem("logimentor_coze_token", state.cozeApiToken);
-        sessionStorage.setItem("logivoice_provider", state.aiProvider);
-        sessionStorage.setItem("logivoice_gemini_key", state.geminiApiKey);
 
         if (remember) {
+          localStorage.setItem("logimentor_tts_engine", state.ttsEngine);
+          localStorage.setItem("logimentor_studio_voice", state.studioVoice);
           localStorage.setItem("logimentor_stt_engine", state.sttEngine);
           localStorage.setItem("logimentor_provider", state.aiProvider);
           localStorage.setItem("logimentor_gemini_key", state.geminiApiKey);
           localStorage.setItem("logimentor_coze_bot_id", state.cozeBotId);
           localStorage.setItem("logimentor_coze_token", state.cozeApiToken);
-          localStorage.setItem("logivoice_provider", state.aiProvider);
-          localStorage.setItem("logivoice_gemini_key", state.geminiApiKey);
         }
         refreshNavbarGamificationPills();
         el.apiConfigModal?.classList.remove("open");
+
+        // Nếu đang ở trong phòng phỏng vấn, đọc lại ngay câu hiện tại bằng giọng Studio mới!
+        if (state.currentView === "interview" && state.lastAiSpokenText) {
+          unlockAudioPlayback();
+          speakMentorText(state.lastAiSpokenText);
+        }
       });
     }
 
@@ -3735,8 +4235,10 @@ QUY TẮC:
     }
     if (el.voiceRateSelect) {
       el.voiceRateSelect.addEventListener("change", () => {
-        state.voiceRate = parseFloat(el.voiceRateSelect.value) || 0.96;
-        if (state.isAiSpeaking && state.lastAiSpokenText) {
+        state.voiceRate = parseFloat(el.voiceRateSelect.value) || 1.0;
+        if (activeAudioEl) {
+          activeAudioEl.playbackRate = state.voiceRate;
+        } else if (state.isAiSpeaking && state.lastAiSpokenText) {
           speakMentorText(state.lastAiSpokenText);
         }
       });
@@ -3745,6 +4247,11 @@ QUY TẮC:
       el.btnReplayQuestionAudio.addEventListener("click", () => {
         unlockAudioPlayback();
         if (state.lastAiSpokenText) speakMentorText(state.lastAiSpokenText);
+      });
+    }
+    if (el.chkHandsFreeMode) {
+      el.chkHandsFreeMode.addEventListener("change", () => {
+        state.handsFreeMode = el.chkHandsFreeMode.checked;
       });
     }
     if (el.chkEnableAiVoice) {
@@ -3769,10 +4276,16 @@ QUY TẮC:
     }
     if (el.answerTranscriptInput) {
       el.answerTranscriptInput.addEventListener("input", () => {
+        state.lastManualCalcOrTypeAt = Date.now();
         if (!state.firstTypedOrSpokenAt && el.answerTranscriptInput.value.trim()) {
           state.firstTypedOrSpokenAt = Date.now();
         }
         updateStarBadges(el.answerTranscriptInput.value);
+      });
+    }
+    if (el.scratchpadTextarea) {
+      el.scratchpadTextarea.addEventListener("input", () => {
+        state.lastManualCalcOrTypeAt = Date.now();
       });
     }
     if (el.btnClearTranscript) {
@@ -3900,5 +4413,6 @@ QUY TẮC:
     refreshNavbarGamificationPills();
     bindEvents();
     handleHashChange();
+    detectServerGeminiStatus();
   });
 })();

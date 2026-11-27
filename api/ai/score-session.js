@@ -165,42 +165,51 @@ export default async function handler(req, res) {
       2
     );
 
-    const geminiResp = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: LOGISTICS_SCORING_SYSTEM_PROMPT }]
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Dữ liệu buổi phỏng vấn cần chấm điểm:\n${userPromptPayload}`
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: "application/json",
-            responseSchema: SCORE_SESSION_RESPONSE_SCHEMA
-          }
-        })
-      }
-    );
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash"];
+    let geminiResp = null;
+    let lastErrText = "";
 
-    if (!geminiResp.ok) {
-      const errText = await geminiResp.text();
-      return res.status(geminiResp.status).json({
+    for (const modelName of candidateModels) {
+      geminiResp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{ text: LOGISTICS_SCORING_SYSTEM_PROMPT }]
+            },
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `Dữ liệu buổi phỏng vấn cần chấm điểm:\n${userPromptPayload}`
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.2,
+              responseMimeType: "application/json",
+              responseSchema: SCORE_SESSION_RESPONSE_SCHEMA
+            }
+          })
+        }
+      );
+
+      if (geminiResp.ok) break;
+      lastErrText = await geminiResp.text();
+      if (geminiResp.status !== 404) break;
+    }
+
+    if (!geminiResp || !geminiResp.ok) {
+      return res.status(geminiResp ? geminiResp.status : 500).json({
         error: "Gemini API request failed",
-        details: errText
+        details: lastErrText
       });
     }
 

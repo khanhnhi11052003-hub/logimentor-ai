@@ -118,7 +118,11 @@ export default async function handler(req, res) {
     const stylePrefix = buildStyleDirectorPrefix(lang, level);
     const fullPrompt = `${stylePrefix}: ${rawText}`;
 
-    const candidateModels = ["gemini-2.5-flash-preview-tts", "gemini-2.5-flash-tts"];
+    const candidateModels = [
+      "gemini-2.5-flash-preview-tts",
+      "gemini-2.5-flash-tts",
+      "gemini-3.8-flash-tts"
+    ];
     let lastStatus = 500;
     let lastErrorText = "";
 
@@ -152,9 +156,8 @@ export default async function handler(req, res) {
       if (!resp.ok) {
         lastStatus = resp.status;
         lastErrorText = await resp.text();
-        // Nếu model đầu không tồn tại (404), thử model kế tiếp
-        if (resp.status === 404) continue;
-        break;
+        if (resp.status === 401 || resp.status === 403) break;
+        continue;
       }
 
       const data = await resp.json();

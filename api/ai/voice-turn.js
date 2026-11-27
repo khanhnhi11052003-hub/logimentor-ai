@@ -130,7 +130,12 @@ NHIỆM VỤ:
       })
     });
 
-    const candidateModels = ["gemini-3.8-flash", "gemini-3-flash-preview", "gemini-2.5-flash"];
+    const candidateModels = [
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-3.8-flash-lite",
+      "gemini-3.8-flash"
+    ];
     let lastErr = "";
     let lastStatus = 500;
 
@@ -160,8 +165,8 @@ NHIỆM VỤ:
       if (!resp.ok) {
         lastStatus = resp.status;
         lastErr = await resp.text();
-        if (resp.status === 404) continue;
-        break;
+        if (resp.status === 401 || resp.status === 403) break;
+        continue;
       }
 
       const data = await resp.json();

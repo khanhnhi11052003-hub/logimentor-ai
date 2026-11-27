@@ -165,7 +165,12 @@ export default async function handler(req, res) {
       2
     );
 
-    const candidateModels = ["gemini-3.8-flash", "gemini-3-flash-preview", "gemini-2.5-flash"];
+    const candidateModels = [
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-3.8-flash-lite",
+      "gemini-3.8-flash"
+    ];
     let geminiResp = null;
     let lastErrText = "";
 
@@ -203,7 +208,7 @@ export default async function handler(req, res) {
 
       if (geminiResp.ok) break;
       lastErrText = await geminiResp.text();
-      if (geminiResp.status !== 404) break;
+      if (geminiResp.status === 401 || geminiResp.status === 403) break;
     }
 
     if (!geminiResp || !geminiResp.ok) {

@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.vercel/
+.DS_Store
+Thumbs.db
+*.docx
+*.pdf
+*.bat
+*mô phỏng*.html
+Phân tích ý tưởng*.html
+Bao_Cao_Kha_Thi_*.html
+Ke_Hoach_Trien_Khai_*.html
+logihire_ai_*.tsx

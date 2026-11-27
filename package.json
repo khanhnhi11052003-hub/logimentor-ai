@@ -1,0 +1,10 @@
+{
+  "name": "logimentor-ai-platform",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LogiMentor AI — EdTech Logistics Voice-to-Voice Interview Simulator & Teacher Portal",
+  "engines": {
+    "node": ">=18.x"
+  }
+}

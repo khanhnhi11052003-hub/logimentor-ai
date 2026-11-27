@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogiMentor AI — Luyện Phỏng Vấn Thực Chiến Ngành Logistics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Background Aurora Subtle Mesh -->
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orb orb-indigo"></div>
+    <div class="ambient-orb orb-emerald"></div>
+  </div>
+
+  <!-- ============================================================================
+       TOP NAVBAR — MINIMALIST LINEAR / NOTION STYLE
+       ============================================================================ -->
+  <header class="top-navbar">
+    <div class="top-navbar-inner">
+      <a href="#/" class="brand-logo" id="btnBrandHome" title="Về Trang chủ chọn ngành luyện tập">
+        <div class="brand-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+            <path d="m3.3 7 8.7 5 8.7-5"/>
+            <path d="M12 22V12"/>
+          </svg>
+        </div>
+        <div class="brand-text-col">
+          <div class="brand-name">
+            LogiMentor
+            <span class="brand-ai-pill">AI Studio</span>
+          </div>
+          <span class="brand-tagline">Logistics & Supply Chain Practice</span>
+        </div>
+      </a>
+
+      <div class="navbar-right-pills">
+        <!-- 1. Chuỗi ngày luyện (Streak) -->
+        <div class="stat-pill streak-pill" id="streakBadgePill" title="Chuỗi ngày luyện tập liên tiếp">
+          <svg class="icon-flame" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" stroke="none">
+            <path d="M12 2c.5 3.5 3.5 5.5 4.5 8.5.8 2.4-.2 5.2-2.2 6.7.3-1.6-.4-3.2-1.8-4-.2 1.8-1.5 3-2.5 4.3-2.1-1.3-3.5-3.6-3.5-6.2C6.5 7.4 9.8 4.6 12 2z"/>
+          </svg>
+          <span class="tabular-nums" id="streakCountText">1 ngày Streak</span>
+        </div>
+
+        <!-- 2. Số buổi đã tập -->
+        <div class="stat-pill sessions-pill" id="sessionsBadgePill" title="Tổng số buổi đã hoàn thành">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span class="tabular-nums" id="sessionCountText">0 buổi đã tập</span>
+        </div>
+
+        <!-- 3. Nút Lịch sử luyện tập -->
+        <button type="button" class="nav-btn-pill" id="btnOpenHistoryDrawer">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l4 2"/>
+          </svg>
+          <span>Lịch sử luyện tập</span>
+        </button>
+
+        <!-- 4. Nút Cổng Giảng Viên -->
+        <button type="button" class="nav-btn-pill teacher-nav-pill" id="btnOpenTeacherPortal" title="Mở Cổng Quản Lý Lớp dành cho Giảng viên">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+          <span>Cổng Giảng viên</span>
+        </button>
+
+        <!-- Kết nối Gemini API -->
+        <button type="button" class="nav-btn-icon" id="btnOpenApiModal" title="Cấu hình Google Gemini API">
+          <span class="api-dot" id="apiConnectionDot"></span>
+          <span id="apiStatusShortText">Gemini AI</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================================
+       VIEW 1: STUDENT HOME PAGE (/)
+       ============================================================================ -->
+  <main id="view-home" class="app-view active">
+    <div class="home-container">
+      <section class="hero-header">
+        <div class="hero-main-col">
+          <div class="hero-kicker">
+            <span class="kicker-dot"></span>
+            <span>AI Mentor 1-1 • Phản xạ thực chiến</span>
+          </div>
+          <h1 class="hero-title">
+            Sẵn sàng bứt phá buổi phỏng vấn <span class="text-gradient">Logistics</span> hôm nay?
+          </h1>
+          <p class="hero-subtitle">
+            Chọn một chuyên ngành bên dưới để đối thoại song ngữ, xử lý số liệu thực tế và nhận điểm Radar 4 trục ngay lập tức.
+          </p>
+        </div>
+
+        <div class="daily-mission-card" id="dailyMissionCard">
+          <div class="dm-top-row">
+            <div class="dm-level-badge" id="dmLevelBadge">⚡ Tân binh Logistics</div>
+            <div class="dm-xp-text tabular-nums" id="dmXpText">0 XP</div>
+          </div>
+          <div class="dm-goal-row">
+            <span id="dmGoalLabel">Mục tiêu hôm nay: <strong>0/1 buổi</strong></span>
+            <span class="dm-goal-bonus">+50 XP</span>
+          </div>
+          <div class="dm-progress-track">
+            <div class="dm-progress-fill" id="dmProgressFill" style="width: 12%;"></div>
+          </div>
+          <button type="button" class="dm-quick-btn" id="btnQuickLaunchRecommended">
+            <span>Luyện nhanh 5 phút (Đề xuất)</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Lưới 6 Nhóm Ngành Logistics trên nền bg-slate-50/60 -->
+      <section class="domains-surface">
+        <div class="domains-section-head">
+          <div>
+            <h2 class="section-heading">6 Chuyên Ngành Thực Chiến Trọng Điểm</h2>
+            <p class="section-sub">Chọn một mảng chuyên môn để mở cấu hình Cấp độ, Ngôn ngữ và bắt đầu buổi tập</p>
+          </div>
+          <div class="surface-legend">
+            <span class="legend-dot"></span>
+            <span>Tích hợp sẵn Case Study định lượng cho cả 6 ngành</span>
+          </div>
+        </div>
+
+        <div class="domains-grid" id="domainsGrid">
+          <!-- Render động 6 thẻ ngành từ data.js -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============================================================================
+       VIEW 2: INTERVIEW ROOM (UNIFIED AI MENTOR STUDIO — 1 COL / 65-35 CASE BOARD)
+       ============================================================================ -->
+  <main id="view-interview" class="app-view">
+    <div class="room-shell">
+
+      <!-- Subheader tinh gọn chuẩn Linear -->
+      <div class="room-subheader">
+        <div class="room-subheader-left">
+          <button type="button" class="btn-back-pill" id="btnBackHomeFromRoom">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span>Đổi ngành</span>
+          </button>
+          <div class="subheader-divider"></div>
+          <span class="room-domain-pill" id="roomTrackBadge">WMS & Kho bãi</span>
+          <span class="room-level-pill" id="roomLevelBadge">Junior</span>
+          <span class="room-dialect-pill" id="roomDialectBadge">Tiếng Việt • Chuẩn thuật ngữ Anh</span>
+        </div>
+
+        <!-- Thanh chuyển câu trong buổi tập -->
+        <div class="question-stepper-pills" id="questionStepperPills"></div>
+
+        <div class="room-subheader-right">
+          <span class="timer-chip tabular-nums" id="roomElapsedTimer" title="Đồng hồ tham khảo — Không tự động ngắt câu">00:00</span>
+          <button type="button" class="btn-finish-room" id="btnFinishSessionEarly">
+            <span>Chấm điểm & Sửa bài</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Adaptive Grid: 1 cột mặc định -> Tự động mở 65/35 khi câu hỏi có case_study_board -->
+      <div class="interview-layout" id="interviewLayoutGrid">
+
+        <!-- CỘT TRÁI (65% khi có Case Study) -->
+        <section class="mentor-main-col">
+
+          <!-- AI MENTOR STUDIO POD (3 Trạng thái sóng âm: Indigo #4F46E5 | Emerald #10B981 | Shimmer) -->
+          <div class="mentor-stage-card state-ai-asking" id="mentorStageCard">
+            <div class="mentor-stage-left">
+              <div class="mentor-orb-wrap" id="mentorOrbWrap">
+                <div class="mentor-orb-glow"></div>
+                <div class="mentor-orb-ring"></div>
+                <div class="mentor-orb-avatar" id="mentorAvatarIcon">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="mentor-meta">
+                <div class="mentor-name-row">
+                  <strong id="mentorNameLabel">Anh Hoàng Nam — AI Ops Mentor</strong>
+                  <span class="mentor-role-chip" id="mentorRoleChip">Mentor Thực Chiến</span>
+                </div>
+                <div class="mentor-live-status" id="mentorStatusText">
+                  Đang chuẩn bị câu hỏi phỏng vấn...
+                </div>
+              </div>
+            </div>
+
+            <div class="mentor-stage-right">
+              <!-- Sóng âm 16 thanh mượt mà -->
+              <div class="waveform-visualizer" id="waveformVisualizer" aria-label="Biểu đồ sóng âm">
+                <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+                <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+                <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+                <span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span><span class="wf-bar"></span>
+              </div>
+
+              <div class="stage-audio-controls">
+                <select id="voiceRateSelect" class="voice-speed-select" title="Tốc độ đọc của AI Mentor">
+                  <option value="0.88">0.88x Chậm rõ</option>
+                  <option value="0.96" selected>0.96x Chuẩn tự nhiên</option>
+                  <option value="1.05">1.05x Linh hoạt</option>
+                </select>
+
+                <button type="button" class="btn-stage-ctrl" id="btnReplayQuestionAudio" title="Nghe AI đọc lại câu vừa rồi">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  <span>Nghe lại</span>
+                </button>
+
+                <label class="voice-mute-toggle" title="Bật hoặc tắt tiếng nói của AI">
+                  <input type="checkbox" id="chkEnableAiVoice" checked />
+                  <span>Bật tiếng</span>
+                </label>
+
+                <label class="barge-in-toggle" title="Cho phép nói đè để ngắt lời AI giữa chừng (AEC + VAD)">
+                  <input type="checkbox" id="chkEnableBargeIn" checked />
+                  <span>Ngắt lời (Barge-in)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khung Hội Thoại Tối Giản Rõ Nét -->
+          <div class="chat-stream" id="chatStream"></div>
+
+          <!-- Ngăn Gợi Ý Từ Khóa Chuyên Ngành -->
+          <div class="hint-drawer" id="keywordHintPanel" style="display:none;">
+            <div class="hint-drawer-header">
+              <div class="hint-title-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                <strong>Gợi ý từ khóa & Hướng giải quyết từ AI Mentor</strong>
+              </div>
+              <span class="hint-sub">Nhấp vào từ khóa để chèn thẳng vào khung trả lời</span>
+            </div>
+            <div class="hint-tags-list" id="hintKeywordsTags"></div>
+            <ul class="hint-bullets-list" id="hintGuideBullets"></ul>
+          </div>
+
+          <!-- Khung Composer Hợp Nhất (Mic + Gợi ý + Sửa lỗi Vietlish + Nút Hoàn thành) -->
+          <div class="composer-card">
+            <div class="composer-toolbar">
+              <div class="composer-tools-left">
+                <button type="button" class="btn-mic" id="btnMicRecord" title="Bật/Tắt Micro nhận diện giọng nói (Alt + M)">
+                  <span class="mic-dot" id="micPulseDot"></span>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <span id="micBtnLabel">Bấm để nói (Alt + M)</span>
+                </button>
+
+                <button type="button" class="btn-hint-toggle" id="btnToggleKeywordHints">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                  <span>Gợi ý từ khóa</span>
+                </button>
+              </div>
+
+              <!-- STAR Progress Pills -->
+              <div class="star-tracker-group" title="4 mảnh ghép câu trả lời điểm cao theo cấu trúc STAR">
+                <span class="star-badge" id="starBadgeS">S · Bối cảnh</span>
+                <span class="star-badge" id="starBadgeT">T · Mục tiêu</span>
+                <span class="star-badge" id="starBadgeA">A · Xử lý</span>
+                <span class="star-badge" id="starBadgeR">R · Số liệu</span>
+              </div>
+            </div>
+
+            <!-- Thanh Chip Chèn Nhanh Thuật Ngữ Tiếng Anh Chuẩn -->
+            <div class="vietlish-quickbar">
+              <span class="vietlish-label">Chèn nhanh thuật ngữ:</span>
+              <div class="vietlish-chips" id="vietlishQuickChips"></div>
+            </div>
+
+            <textarea
+              id="answerTranscriptInput"
+              class="editable-transcript-box"
+              rows="4"
+              placeholder="Bấm 'Bấm để nói' hoặc nhập câu trả lời tại đây. Bạn có thể dừng lại suy nghĩ, tính toán trên máy tính mini và sửa lại các từ tiếng Anh (FEFO, WMS, Bill of Lading...) trước khi bấm 'Hoàn thành & Gửi câu trả lời'."
+            ></textarea>
+
+            <div class="composer-footer">
+              <div class="composer-meta-hint" id="micLiveNotice">
+                Không tự động ngắt câu khi im lặng — bạn hoàn toàn làm chủ lượt trả lời.
+              </div>
+              <div class="composer-actions">
+                <button type="button" class="btn-ghost-sm" id="btnClearTranscript">Xóa nháp</button>
+                <button type="button" class="btn-submit-answer" id="btnSubmitAnswer">
+                  <span>Hoàn thành & Gửi câu trả lời</span>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- CỘT PHẢI (35% Desktop • Bottom Sheet Mobile): BẢNG CASE STUDY & MÁY TÍNH MINI -->
+        <aside class="case-study-aside" id="caseStudyAside">
+          <div class="mobile-sheet-header" id="btnToggleMobileSheet">
+            <span class="sheet-grabber"></span>
+            <div class="mobile-sheet-bar-row">
+              <strong>Bảng Số Liệu Case Study & Máy Tính Mini</strong>
+              <span class="btn-ghost-sm" id="mobileSheetToggleLabel">Mở rộng</span>
+            </div>
+          </div>
+
+          <div class="case-study-aside-body">
+            <div class="case-board-head">
+              <span class="case-tag-pill" id="caseDomainBadge">CASE STUDY BOARD</span>
+              <h3 class="case-board-title" id="caseBoardTitle">Bảng số liệu tình huống thực chiến</h3>
+            </div>
+
+            <div id="caseBoardTableMount"></div>
+            <ul class="case-notes-list" id="caseNotesList"></ul>
+
+            <!-- 2 Tab Tiện Ích: Máy tính mini & Ghi chú nháp -->
+            <div class="utility-tabs-card">
+              <div class="utility-tab-nav">
+                <button type="button" class="utility-tab-btn active" data-util-tab="calculator" id="tabBtnCalculator">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+                  <span>Máy tính mini</span>
+                </button>
+                <button type="button" class="utility-tab-btn" data-util-tab="scratchpad" id="tabBtnScratchpad">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <span>Ghi chú nháp</span>
+                </button>
+              </div>
+
+              <!-- Pane 1: Máy tính mini -->
+              <div class="utility-tab-pane active" id="utilPaneCalculator">
+                <div class="calc-screen">
+                  <div class="calc-expr tabular-nums" id="calcExpressionDisplay">0</div>
+                  <div class="calc-result tabular-nums" id="calcResultDisplay">0</div>
+                </div>
+
+                <div class="calc-insert-bar">
+                  <span class="calc-history-chip tabular-nums" id="calcLastHistory">Sẵn sàng tính toán số liệu</span>
+                  <button type="button" class="btn-calc-insert" id="btnInsertCalcToAnswer">
+                    ↳ Chèn số vào bài
+                  </button>
+                </div>
+
+                <div class="calc-keypad tabular-nums">
+                  <button type="button" class="calc-key key-clear" data-calc="C">C</button>
+                  <button type="button" class="calc-key key-fn" data-calc="BACK">⌫</button>
+                  <button type="button" class="calc-key key-fn" data-calc="%">%</button>
+                  <button type="button" class="calc-key key-op" data-calc="/">÷</button>
+
+                  <button type="button" class="calc-key" data-calc="7">7</button>
+                  <button type="button" class="calc-key" data-calc="8">8</button>
+                  <button type="button" class="calc-key" data-calc="9">9</button>
+                  <button type="button" class="calc-key key-op" data-calc="*">×</button>
+
+                  <button type="button" class="calc-key" data-calc="4">4</button>
+                  <button type="button" class="calc-key" data-calc="5">5</button>
+                  <button type="button" class="calc-key" data-calc="6">6</button>
+                  <button type="button" class="calc-key key-op" data-calc="-">−</button>
+
+                  <button type="button" class="calc-key" data-calc="1">1</button>
+                  <button type="button" class="calc-key" data-calc="2">2</button>
+                  <button type="button" class="calc-key" data-calc="3">3</button>
+                  <button type="button" class="calc-key key-op" data-calc="+">+</button>
+
+                  <button type="button" class="calc-key" data-calc="0">0</button>
+                  <button type="button" class="calc-key" data-calc="000">000</button>
+                  <button type="button" class="calc-key" data-calc=".">.</button>
+                  <button type="button" class="calc-key key-eq" data-calc="=">=</button>
+                </div>
+              </div>
+
+              <!-- Pane 2: Ghi chú nháp -->
+              <div class="utility-tab-pane" id="utilPaneScratchpad">
+                <textarea
+                  id="scratchpadTextarea"
+                  class="scratchpad-input tabular-nums"
+                  placeholder="Ghi chú nhanh công thức, số liệu trung gian... (Nhấp vào dòng bất kỳ trên bảng số liệu để lưu nhanh xuống đây)"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================================
+       VIEW 3: REPORT & COACHING PAGE (/report/[sessionId])
+       ============================================================================ -->
+  <main id="view-report" class="app-view">
+    <div class="report-container">
+      <div class="report-topbar no-print">
+        <button type="button" class="btn-back-pill" id="btnBackHomeFromReport">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <span>Về Trang chủ chọn ngành</span>
+        </button>
+        <div class="report-topbar-actions">
+          <span class="session-id-pill tabular-nums" id="reportSessionIdBadge">/report/sess-01</span>
+          <button type="button" class="btn-outline-sm" id="btnToggleScoreJson">{ } JSON Schema</button>
+          <button type="button" class="btn-outline-sm" id="btnPrintReport">Xuất PDF</button>
+        </div>
+      </div>
+
+      <div class="raw-json-panel no-print" id="rawJsonPanel" style="display:none;">
+        <div class="raw-json-head">
+          <span>Structured JSON Output (<code>/api/ai/score-session</code>)</span>
+          <button type="button" class="btn-ghost-sm" id="btnCopyRawJson" style="color:#E2E8F0;">Copy JSON</button>
+        </div>
+        <pre id="rawJsonPre"></pre>
+      </div>
+
+      <!-- Bento Overview: Circular Progress (0-100) + 4-Axis Radar -->
+      <section class="report-overview-grid">
+        <div class="report-card score-summary-card">
+          <div class="score-hero-row">
+            <div class="circular-progress-wrap">
+              <svg class="circular-progress-svg" width="152" height="152" viewBox="0 0 152 152">
+                <defs>
+                  <linearGradient id="scoreRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4F46E5" />
+                    <stop offset="100%" stop-color="#10B981" />
+                  </linearGradient>
+                </defs>
+                <circle class="cp-bg" cx="76" cy="76" r="62" stroke-width="11" fill="none"></circle>
+                <circle
+                  class="cp-fg"
+                  id="reportScoreCircleArc"
+                  cx="76"
+                  cy="76"
+                  r="62"
+                  stroke-width="11"
+                  fill="none"
+                  stroke="url(#scoreRingGrad)"
+                  stroke-dasharray="389.56"
+                  stroke-dashoffset="389.56"
+                ></circle>
+              </svg>
+              <div class="circular-progress-center">
+                <div class="cp-score-num tabular-nums" id="reportTotalScoreNum">0</div>
+                <div class="cp-score-sub">trên 100</div>
+              </div>
+            </div>
+
+            <div class="score-hero-info">
+              <div class="report-badges-row">
+                <span class="room-domain-pill" id="reportTrackBadge">WMS</span>
+                <span class="room-level-pill" id="reportLevelBadge">Junior</span>
+              </div>
+              <h2 class="report-main-heading" id="reportRecommendationTitle">Đang tổng hợp kết quả...</h2>
+              <p class="report-timestamp-sub" id="reportTimestampSub"></p>
+            </div>
+          </div>
+
+          <div class="exec-summary-grid" id="reportExecSummaryBox"></div>
+        </div>
+
+        <div class="report-card radar-card">
+          <div class="card-head-compact">
+            <h3>Biểu Đồ Năng Lực 4 Trục</h3>
+            <p>Kiến thức nghiệp vụ · Xử lý tình huống · Tư duy KPI/Số liệu · Giao tiếp STAR</p>
+          </div>
+          <div class="radar-svg-box" id="reportRadarMount"></div>
+          <div class="radar-bars-list tabular-nums" id="reportRadarBarsMount"></div>
+        </div>
+      </section>
+
+      <!-- Danh sách câu hỏi + Từ khóa Xanh ngọc / Đỏ san hô nhạt + Thử trả lời lại tức thì -->
+      <section class="report-questions-section">
+        <div class="section-head-inline">
+          <h3 class="section-heading">Phân Tích & Sửa Bài Từng Câu Hỏi</h3>
+          <p class="section-sub">
+            Đối chiếu song song với gợi ý chuyên gia. Bấm <strong>"Thử trả lời lại câu này"</strong> để ghi âm hoặc viết lại và được AI chấm điểm lại ngay lập tức.
+          </p>
+        </div>
+
+        <div class="question-evals-list" id="reportQuestionsMount"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============================================================================
+       VIEW 4: TEACHER PORTAL (/teacher) — CỔNG QUẢN LÝ LỚP DÀNH CHO GIẢNG VIÊN
+       ============================================================================ -->
+  <section id="view-teacher" class="app-view">
+    <div class="teacher-container">
+      <!-- Top Bar -->
+      <div class="report-top-bar">
+        <button type="button" class="btn-ghost-sm" id="btnBackHomeFromTeacher">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <span>Về Trang chủ</span>
+        </button>
+
+        <div class="report-top-actions">
+          <span class="cloud-status-pill" id="teacherCloudStatusBadge">
+            <span class="cloud-dot" id="teacherCloudDot"></span>
+            <span id="teacherCloudStatusText">Chế độ Demo / Local</span>
+          </span>
+          <button type="button" class="btn-ghost-sm" id="btnSyncTeacherCloud" title="Tải dữ liệu mới nhất từ Supabase Cloud">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            <span>Đồng bộ Cloud</span>
+          </button>
+          <button type="button" class="btn-primary-cta btn-excel-export" id="btnExportTeacherExcel">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span>Xuất file Excel (.csv)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Header Banner -->
+      <div class="teacher-hero-card">
+        <div>
+          <div class="teacher-kicker">CỔNG GIẢNG VIÊN • QUẢN LÝ LỚP HỌC PHẦN</div>
+          <h1 class="teacher-title">Theo Dõi Tiến Độ &amp; Phân Tích Lỗ Hổng Kiến Thức Lớp</h1>
+          <p class="teacher-subtitle">
+            Tổng hợp tự động điểm Radar 4 trục của sinh viên, nhận diện các từ khóa/nghiệp vụ cả lớp hay bỏ sót để Thầy/Cô giảng bổ trợ trên lớp và xuất bảng điểm quá trình.
+          </p>
+        </div>
+        <div class="teacher-filters-col">
+          <div class="teacher-filter-group" style="min-width:140px;">
+            <label for="teacherClassCodeInput">Mã lớp học phần</label>
+            <input type="text" id="teacherClassCodeInput" class="clean-input" value="LOGI-K22A" placeholder="VD: LOGI-K22A" />
+          </div>
+          <div class="teacher-filter-group">
+            <label for="teacherDomainFilter">Lọc theo mảng ngành</label>
+            <select id="teacherDomainFilter" class="clean-input">
+              <option value="ALL">Tất cả 6 mảng Logistics</option>
+              <option value="WMS">Kho bãi &amp; Tồn kho (WMS)</option>
+              <option value="TMS">Vận tải &amp; Điều phối (TMS)</option>
+              <option value="LAST_MILE">Giao hàng chặng cuối (Last-mile)</option>
+              <option value="CUSTOMS">Xuất nhập khẩu &amp; Hải quan (Customs)</option>
+              <option value="SUPPLY_CHAIN">Chuỗi cung ứng (Supply Chain)</option>
+              <option value="LOGISTICS_BA">Logistics Business Analyst</option>
+            </select>
+          </div>
+          <div class="teacher-filter-group">
+            <label for="teacherSearchInput">Tìm sinh viên / MSSV</label>
+            <input type="text" id="teacherSearchInput" class="clean-input" placeholder="Nhập tên hoặc MSSV..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Thẻ KPI Tổng quan Lớp -->
+      <section class="teacher-kpi-grid" id="teacherKpiGrid">
+        <div class="teacher-kpi-card">
+          <div class="tk-label">Sinh viên đã luyện tập</div>
+          <div class="tk-value tabular-nums" id="tkActiveStudents">0 / 40</div>
+          <div class="tk-sub" id="tkTotalSessionsSub">0 lượt phỏng vấn hoàn thành</div>
+        </div>
+        <div class="teacher-kpi-card">
+          <div class="tk-label">Điểm trung bình cả lớp</div>
+          <div class="tk-value tabular-nums" id="tkClassAvgScore">0.0</div>
+          <div class="tk-sub" id="tkPassRateSub">0% đạt chuẩn Junior (≥70đ)</div>
+        </div>
+        <div class="teacher-kpi-card">
+          <div class="tk-label">Trục năng lực mạnh nhất</div>
+          <div class="tk-value tk-good" id="tkStrongestAxis">--</div>
+          <div class="tk-sub tabular-nums" id="tkStrongestAxisScore">Trung bình --/100</div>
+        </div>
+        <div class="teacher-kpi-card">
+          <div class="tk-label">Điểm yếu cần lưu ý nhất</div>
+          <div class="tk-value tk-warn" id="tkWeakestAxis">--</div>
+          <div class="tk-sub tabular-nums" id="tkWeakestAxisScore">Trung bình --/100</div>
+        </div>
+      </section>
+
+      <!-- Hai cột: Bảng Sinh viên (Trái) + Thống kê Lỗ hổng kiến thức lớp (Phải) -->
+      <div class="teacher-main-grid">
+        <!-- Cột Trái: Danh sách sinh viên đã luyện tập -->
+        <section class="teacher-panel">
+          <div class="teacher-panel-head">
+            <div>
+              <h3>Danh Sách Sinh Viên Đã Luyện Tập</h3>
+              <p>Bấm <strong>"Xem Radar"</strong> ở từng sinh viên để kiểm tra biểu đồ 4 trục và từ khóa còn thiếu.</p>
+            </div>
+            <span class="teacher-count-badge tabular-nums" id="teacherVisibleCountBadge">0 sinh viên</span>
+          </div>
+
+          <div class="teacher-table-wrap">
+            <table class="teacher-table">
+              <thead>
+                <tr>
+                  <th>MSSV &amp; Họ tên</th>
+                  <th>Mảng / Cấp độ</th>
+                  <th style="text-align:center;">Số buổi</th>
+                  <th style="text-align:center;">Điểm tổng</th>
+                  <th>4 Trục Radar (NV · TH · KPI · STAR)</th>
+                  <th style="text-align:right;">Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody id="teacherStudentsTbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Cột Phải: Thống kê kiến thức cả lớp hay sai / bỏ sót nhất -->
+        <aside class="teacher-panel">
+          <div class="teacher-panel-head">
+            <div>
+              <h3>Kiến Thức Cả Lớp Hay Sai / Bỏ Sót</h3>
+              <p>Tổng hợp các từ khóa &amp; quy trình nghiệp vụ bị thiếu nhiều nhất để Thầy/Cô hỗ trợ trên lớp.</p>
+            </div>
+          </div>
+
+          <div class="knowledge-gaps-list" id="teacherKnowledgeGapsList"></div>
+
+          <div class="teacher-insight-box" id="teacherActionInsightBox"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       MODAL 1: CẤU HÌNH NHANH (QUICK-START MODAL)
+       ============================================================================ -->
+  <div class="modal-overlay" id="quickStartModal">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="qs-domain-header">
+          <div class="qs-icon-box" id="qsDomainIconBox"></div>
+          <div>
+            <span class="qs-badge" id="qsDomainCodeBadge">WMS</span>
+            <h3 class="modal-title" id="qsDomainTitle">Kho bãi & Tồn kho (WMS)</h3>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseQuickStart" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="qs-case-callout" id="qsCasePreviewText"></div>
+
+      <div class="qs-field-group">
+        <label class="qs-label">Thông tin sinh viên (Tự động đồng bộ về Cổng Giảng viên)</label>
+        <div class="qs-student-grid">
+          <input type="text" id="qsStudentName" class="clean-input" placeholder="Họ và tên (VD: Nguyễn Minh Hoàng)" />
+          <input type="text" id="qsStudentMssv" class="clean-input" placeholder="MSSV (VD: 2251040012)" />
+          <input type="email" id="qsStudentEmail" class="clean-input" placeholder="Email trường (@edu.vn)" />
+          <input type="text" id="qsClassCode" class="clean-input" placeholder="Mã lớp (VD: LOGI-K22A)" value="LOGI-K22A" />
+        </div>
+      </div>
+
+      <div class="qs-field-group">
+        <label class="qs-label">1. Cấp độ mục tiêu</label>
+        <div class="segmented-pills" id="qsLevelGroup">
+          <button type="button" class="seg-pill" data-level="Intern/Fresher">
+            <strong>Intern / Fresher</strong>
+            <span>Nền tảng & Tư duy</span>
+          </button>
+          <button type="button" class="seg-pill active" data-level="Junior">
+            <strong>Junior</strong>
+            <span>Thực chiến & Số liệu</span>
+          </button>
+          <button type="button" class="seg-pill" data-level="Senior">
+            <strong>Senior</strong>
+            <span>Tối ưu KPI & Hệ thống</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="qs-field-group">
+        <label class="qs-label">2. Ngôn ngữ phỏng vấn</label>
+        <div class="segmented-pills cols-2" id="qsLangGroup">
+          <button type="button" class="seg-pill active" data-lang="vi">
+            <strong>Tiếng Việt (Song ngữ thuật ngữ)</strong>
+            <span>Đọc rõ thuật ngữ tiếng Anh chuyên ngành</span>
+          </button>
+          <button type="button" class="seg-pill" data-lang="en">
+            <strong>English (100% MNC Standard)</strong>
+            <span>Giọng bản xứ chuẩn phỏng vấn tập đoàn</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="qs-field-group">
+        <label class="qs-label">3. Lộ trình vào bài</label>
+        <div class="segmented-pills cols-2" id="qsStartModeGroup">
+          <button type="button" class="seg-pill active" data-start-mode="full">
+            <strong>Trọn bộ 3 câu thực chiến</strong>
+            <span>Khởi động → Case Study → Tối ưu KPI</span>
+          </button>
+          <button type="button" class="seg-pill" data-start-mode="case_first">
+            <strong>Vào thẳng Bảng Case Study</strong>
+            <span>Mở ngay giao diện 2 cột & Máy tính mini</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost-sm" id="btnCancelQuickStart">Đóng</button>
+        <button type="button" class="btn-primary-cta" id="btnStartPracticeNow">
+          <span>Bắt đầu luyện ngay</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 2: LỊCH SỬ LUYỆN TẬP
+       ============================================================================ -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-head">
+        <div>
+          <h3 class="modal-title">Lịch Sử Các Buổi Đã Luyện Tập</h3>
+          <p class="section-sub">Chọn một phiên bất kỳ để mở lại báo cáo và luyện trả lời lại từng câu</p>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <button type="button" class="btn-ghost-sm" id="btnClearAllHistory" style="color:#E11D48;">Xóa tất cả</button>
+          <button type="button" class="modal-close-btn" id="btnCloseHistoryModal">✕</button>
+        </div>
+      </div>
+      <div class="history-list-box" id="historySessionsList"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 3: CẤU HÌNH 3 TẦNG VOICE AI (STT • BRAIN: BUILT-IN / GEMINI / COZE • TTS)
+       ============================================================================ -->
+  <div class="modal-overlay" id="apiConfigModal">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div>
+          <h3 class="modal-title">Cấu Hình Kiến Trúc 3 Tầng Voice AI</h3>
+          <p class="section-sub">Tùy chọn linh hoạt giữa thuật toán tiết kiệm chi phí (0đ) và AI API (Gemini / Coze) theo nhu cầu.</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseApiModal">✕</button>
+      </div>
+
+      <!-- Tầng 1: STT -->
+      <div class="qs-field-group">
+        <label class="qs-label" for="sttEngineSelect">1. Tầng STT (Catch Voice → Text)</label>
+        <select id="sttEngineSelect" class="clean-input">
+          <option value="webspeech_hybrid">Web Speech API + Bộ lọc AEC & Vietlish Auto-Fix (0đ)</option>
+          <option value="gemini_audio">Gemini 2.0 Audio STT (Chuẩn Vietlish cao — cần Gemini API Key)</option>
+        </select>
+      </div>
+
+      <!-- Tầng 2: Brain -->
+      <div class="qs-field-group">
+        <label class="qs-label" for="aiProviderSelect">2. Tầng Brain (Suy nghĩ phản hồi & Chấm điểm)</label>
+        <select id="aiProviderSelect" class="clean-input">
+          <option value="builtin">Built-in Logistics Brain (Thuật toán riêng — 0đ, phản hồi tức thì)</option>
+          <option value="gemini">Google Gemini 2.0 Flash API (Ngữ nghĩa sâu + JSON Schema)</option>
+          <option value="coze">Coze Bot API (coze.com — Workflow & Knowledge Base tùy chỉnh)</option>
+        </select>
+      </div>
+
+      <!-- Cấu hình Gemini -->
+      <div class="qs-field-group" id="geminiKeyFieldWrap" style="display:none;">
+        <label class="qs-label" for="geminiApiKeyInput">Google Gemini API Key</label>
+        <input type="password" id="geminiApiKeyInput" class="clean-input" placeholder="AIzaSy..." autocomplete="off" />
+      </div>
+
+      <!-- Cấu hình Coze Bot API -->
+      <div class="qs-field-group" id="cozeConfigFieldWrap" style="display:none;">
+        <label class="qs-label" for="cozeBotIdInput">Coze Bot ID (từ coze.com)</label>
+        <input type="text" id="cozeBotIdInput" class="clean-input" placeholder="73xxxxxxxxxxxxxxx" style="margin-bottom:0.55rem;" autocomplete="off" />
+        <label class="qs-label" for="cozeApiTokenInput">Coze Personal Access Token (PAT)</label>
+        <input type="password" id="cozeApiTokenInput" class="clean-input" placeholder="pat_..." autocomplete="off" />
+      </div>
+
+      <!-- Tầng 3: Cloud Database (Supabase) -->
+      <div class="qs-field-group" style="border-top:1px solid #E2E8F0; padding-top:0.8rem; margin-top:0.4rem;">
+        <label class="qs-label">3. Cloud Database (Supabase — Tự động kết nối trên Vercel)</label>
+        <p style="font-size:0.74rem; color:#64748B; margin:0 0 0.45rem;">Khi deploy lên Vercel có biến môi trường thì để trống. Nếu test trực tiếp trên máy tính, dán URL &amp; Anon Key của Supabase để đồng bộ nhiều máy:</p>
+        <input type="text" id="supabaseUrlInput" class="clean-input" placeholder="https://xxxx.supabase.co" style="margin-bottom:0.45rem;" autocomplete="off" />
+        <input type="password" id="supabaseAnonKeyInput" class="clean-input" placeholder="Supabase Anon Public Key (eyJ...)" autocomplete="off" />
+      </div>
+
+      <label class="remember-key-row" style="margin-bottom:0.65rem;">
+        <input type="checkbox" id="chkRememberGeminiKey" checked />
+        <span>Lưu cấu hình kết nối trên trình duyệt cá nhân này</span>
+      </label>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost-sm" id="btnCancelApiModal">Hủy</button>
+        <button type="button" class="btn-primary-cta" id="btnSaveApiModal">Lưu cấu hình 3 tầng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 4: CHI TIẾT RADAR TỪNG SINH VIÊN (TEACHER PORTAL)
+       ============================================================================ -->
+  <div class="modal-overlay" id="teacherStudentModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+            <span class="room-domain-pill" id="tsModalMssvBadge">MSSV</span>
+            <span class="room-level-pill" id="tsModalTrackBadge">WMS • Junior</span>
+          </div>
+          <h3 class="modal-title" id="tsModalStudentName">Họ tên sinh viên</h3>
+          <p class="section-sub" id="tsModalMetaSub">email@edu.vn • 3 buổi đã luyện</p>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseTeacherStudentModal">✕</button>
+      </div>
+
+      <div class="ts-modal-grid">
+        <div class="ts-radar-col">
+          <div class="ts-score-banner">
+            <span>Điểm tổng đánh giá:</span>
+            <strong class="tabular-nums" id="tsModalTotalScore">78/100</strong>
+          </div>
+          <div class="radar-svg-box" id="tsModalRadarMount"></div>
+        </div>
+        <div class="ts-detail-col">
+          <div class="radar-bars-list tabular-nums" id="tsModalRadarBarsMount"></div>
+          <div class="ts-keywords-box">
+            <h4>Từ khóa đã nắm vững</h4>
+            <div class="kw-tags-row" id="tsModalMatchedKws"></div>
+          </div>
+          <div class="ts-keywords-box">
+            <h4>Kiến thức còn thiếu / Cần Thầy hỗ trợ</h4>
+            <div class="kw-tags-row" id="tsModalMissingKws"></div>
+          </div>
+          <div class="ts-feedback-box" id="tsModalFeedbackBox"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-primary-cta" id="btnOkTeacherStudentModal">Đóng chi tiết</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

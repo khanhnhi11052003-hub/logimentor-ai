@@ -90,36 +90,31 @@
        ============================================================================ -->
   <main id="view-home" class="app-view active">
     <div class="home-container">
-      <section class="hero-header">
-        <div class="hero-main-col">
-          <div class="hero-kicker">
-            <span class="kicker-dot"></span>
-            <span>AI Mentor 1-1 • Phản xạ thực chiến</span>
-          </div>
-          <h1 class="hero-title">
-            Sẵn sàng bứt phá buổi phỏng vấn <span class="text-gradient">Logistics</span> hôm nay?
-          </h1>
-          <p class="hero-subtitle">
-            Chọn một chuyên ngành bên dưới để đối thoại song ngữ, xử lý số liệu thực tế và nhận điểm Radar 4 trục ngay lập tức.
-          </p>
+      <section class="hero-header-modern">
+        <div class="hero-pill-badge">
+          <span class="pulse-dot"></span>
+          <span>Nền tảng Phỏng vấn Thực chiến Logistics &amp; Supply Chain</span>
         </div>
+        <h1 class="hero-title-modern">
+          Chinh Phục Phỏng Vấn &amp; Giải Case Study <span class="text-gradient">Logistics Thực Tế</span>
+        </h1>
+        <p class="hero-subtitle-modern">
+          Đối thoại song ngữ trực tiếp cùng AI Mentor, bấm máy tính xử lý số liệu chứng từ kho vận – hải quan – điều xe và nhận đánh giá 4 trục STAR tức thì.
+        </p>
 
-        <div class="daily-mission-card" id="dailyMissionCard">
-          <div class="dm-top-row">
-            <div class="dm-level-badge" id="dmLevelBadge">⚡ Tân binh Logistics</div>
-            <div class="dm-xp-text tabular-nums" id="dmXpText">0 XP</div>
+        <div class="hero-highlights-row">
+          <div class="hero-highlight-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <span>Giọng đọc AI liền mạch tự nhiên</span>
           </div>
-          <div class="dm-goal-row">
-            <span id="dmGoalLabel">Mục tiêu hôm nay: <strong>0/1 buổi</strong></span>
-            <span class="dm-goal-bonus">+50 XP</span>
+          <div class="hero-highlight-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 9v12"/></svg>
+            <span>Bảng số liệu 65/35 &amp; Máy tính mini</span>
           </div>
-          <div class="dm-progress-track">
-            <div class="dm-progress-fill" id="dmProgressFill" style="width: 12%;"></div>
+          <div class="hero-highlight-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            <span>Cổng Giảng viên đồng bộ Cloud</span>
           </div>
-          <button type="button" class="dm-quick-btn" id="btnQuickLaunchRecommended">
-            <span>Luyện nhanh 5 phút (Đề xuất)</span>
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </button>
         </div>
       </section>
 
@@ -641,61 +636,56 @@
         <button type="button" class="modal-close-btn" id="btnCloseQuickStart" aria-label="Đóng">✕</button>
       </div>
 
-      <div class="qs-case-callout" id="qsCasePreviewText"></div>
+      <div class="modal-body-scroll">
+        <div class="qs-case-callout" id="qsCasePreviewText"></div>
 
-      <div class="qs-field-group">
-        <label class="qs-label">Thông tin sinh viên (Tự động đồng bộ về Cổng Giảng viên)</label>
-        <div class="qs-student-grid">
-          <input type="text" id="qsStudentName" class="clean-input" placeholder="Họ và tên (VD: Nguyễn Minh Hoàng)" />
-          <input type="text" id="qsStudentMssv" class="clean-input" placeholder="MSSV (VD: 2251040012)" />
-          <input type="email" id="qsStudentEmail" class="clean-input" placeholder="Email trường (@edu.vn)" />
-          <input type="text" id="qsClassCode" class="clean-input" placeholder="Mã lớp (VD: LOGI-K22A)" value="LOGI-K22A" />
+        <div class="qs-section-card">
+          <div class="qs-section-title">Hồ sơ sinh viên (Đồng bộ Cổng Giảng viên)</div>
+          <div class="qs-student-grid">
+            <input type="text" id="qsStudentName" class="clean-input" placeholder="Họ và tên" />
+            <input type="text" id="qsStudentMssv" class="clean-input" placeholder="MSSV" />
+            <input type="email" id="qsStudentEmail" class="clean-input" placeholder="Email @edu.vn" />
+            <input type="text" id="qsClassCode" class="clean-input" placeholder="Mã lớp (LOGI-K22A)" value="LOGI-K22A" />
+          </div>
         </div>
-      </div>
 
-      <div class="qs-field-group">
-        <label class="qs-label">1. Cấp độ mục tiêu</label>
-        <div class="segmented-pills" id="qsLevelGroup">
-          <button type="button" class="seg-pill" data-level="Intern/Fresher">
-            <strong>Intern / Fresher</strong>
-            <span>Nền tảng & Tư duy</span>
-          </button>
-          <button type="button" class="seg-pill active" data-level="Junior">
-            <strong>Junior</strong>
-            <span>Thực chiến & Số liệu</span>
-          </button>
-          <button type="button" class="seg-pill" data-level="Senior">
-            <strong>Senior</strong>
-            <span>Tối ưu KPI & Hệ thống</span>
-          </button>
+        <div class="qs-section-card">
+          <div class="qs-section-title">1. Cấp độ mục tiêu</div>
+          <div class="segmented-pills" id="qsLevelGroup">
+            <button type="button" class="seg-pill" data-level="Intern/Fresher">
+              <strong>Intern / Fresher</strong>
+            </button>
+            <button type="button" class="seg-pill active" data-level="Junior">
+              <strong>Junior</strong>
+            </button>
+            <button type="button" class="seg-pill" data-level="Senior">
+              <strong>Senior</strong>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="qs-field-group">
-        <label class="qs-label">2. Ngôn ngữ phỏng vấn</label>
-        <div class="segmented-pills cols-2" id="qsLangGroup">
-          <button type="button" class="seg-pill active" data-lang="vi">
-            <strong>Tiếng Việt (Song ngữ thuật ngữ)</strong>
-            <span>Đọc rõ thuật ngữ tiếng Anh chuyên ngành</span>
-          </button>
-          <button type="button" class="seg-pill" data-lang="en">
-            <strong>English (100% MNC Standard)</strong>
-            <span>Giọng bản xứ chuẩn phỏng vấn tập đoàn</span>
-          </button>
+        <div class="qs-section-card">
+          <div class="qs-section-title">2. Ngôn ngữ phỏng vấn</div>
+          <div class="segmented-pills cols-2" id="qsLangGroup">
+            <button type="button" class="seg-pill active" data-lang="vi">
+              <strong>Tiếng Việt (Song ngữ thuật ngữ)</strong>
+            </button>
+            <button type="button" class="seg-pill" data-lang="en">
+              <strong>English (MNC Standard)</strong>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="qs-field-group">
-        <label class="qs-label">3. Lộ trình vào bài</label>
-        <div class="segmented-pills cols-2" id="qsStartModeGroup">
-          <button type="button" class="seg-pill active" data-start-mode="full">
-            <strong>Trọn bộ 3 câu thực chiến</strong>
-            <span>Khởi động → Case Study → Tối ưu KPI</span>
-          </button>
-          <button type="button" class="seg-pill" data-start-mode="case_first">
-            <strong>Vào thẳng Bảng Case Study</strong>
-            <span>Mở ngay giao diện 2 cột & Máy tính mini</span>
-          </button>
+        <div class="qs-section-card">
+          <div class="qs-section-title">3. Lộ trình vào bài</div>
+          <div class="segmented-pills cols-2" id="qsStartModeGroup">
+            <button type="button" class="seg-pill active" data-start-mode="full">
+              <strong>Trọn bộ 3 câu thực chiến</strong>
+            </button>
+            <button type="button" class="seg-pill" data-start-mode="case_first">
+              <strong>Vào thẳng Bảng Case Study</strong>
+            </button>
+          </div>
         </div>
       </div>
 

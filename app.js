@@ -1090,169 +1090,102 @@
       );
     };
 
-    // NHÁNH 1: Chế độ Tiếng Anh 100% (English Mode)
-    if (lang === "en" && enVoice && synth) {
-      let idx = 0;
-      const speakNextEnClause = () => {
-        if (myToken !== speechTokenCounter) return;
-        if (idx >= clauses.length) {
-          finishSpeaking();
-          return;
-        }
-        const clauseText = clauses[idx++];
-        const u = new SpeechSynthesisUtterance(clauseText);
-        u.voice = enVoice;
-        u.lang = enVoice.lang;
-        u.rate = userRate;
-        u.pitch = 1.0;
-        u.onend = () => {
-          if (myToken !== speechTokenCounter) return;
-          state.spokenClausesSoFar.push(clauseText);
-          speechPauseTimer = setTimeout(speakNextEnClause, 280);
-        };
-        u.onerror = speakNextEnClause;
-        synth.speak(u);
-      };
-      speakNextEnClause();
-      return;
-    }
+    // 1. Kiểm tra xem máy có giọng đọc bản xứ phù hợp hay không (Edge Natural hoặc Chrome Google)
+    const hasViVoice = Boolean(
+      multilingualViVoice ||
+      viVoice ||
+      (voices && voices.some(v => v.lang && v.lang.toLowerCase().startsWith("vi")))
+    );
+    const hasEnVoice = Boolean(
+      enVoice ||
+      (voices && voices.some(v => v.lang && v.lang.toLowerCase().startsWith("en")))
+    );
+    const canUseSpeechSynthesis = synth && (lang === "en" ? hasEnVoice : hasViVoice);
 
-    // NHÁNH 2: Trình duyệt có Giọng Đa Ngôn Ngữ Azure Natural Online (Edge HoaiMy / NamMinh Natural)
-    if (lang === "vi" && multilingualViVoice && synth) {
-      let idx = 0;
-      const speakNextMultilingualClause = () => {
-        if (myToken !== speechTokenCounter) return;
-        if (idx >= clauses.length) {
-          finishSpeaking();
-          return;
-        }
-        const clauseText = clauses[idx++];
-        const u = new SpeechSynthesisUtterance(clauseText);
-        u.voice = multilingualViVoice;
-        u.lang = multilingualViVoice.lang;
-        u.rate = userRate;
-        u.pitch = 1.0;
-        u.onend = () => {
-          if (myToken !== speechTokenCounter) return;
-          state.spokenClausesSoFar.push(clauseText);
-          speechPauseTimer = setTimeout(speakNextMultilingualClause, 300);
-        };
-        u.onerror = speakNextMultilingualClause;
-        synth.speak(u);
-      };
-      speakNextMultilingualClause();
-      return;
-    }
-
-    // NHÁNH 3: Trình duyệt Chrome có cặp giọng Google Tiếng Việt + Google US English
-    if (lang === "vi" && viVoice && enVoice && synth) {
-      const queue = [];
-      clauses.forEach(cl => {
-        const segs = tokenizeBilingualSegments(cl);
-        segs.forEach((seg, sIdx) => {
-          queue.push({
-            lang: seg.lang,
-            text: seg.text,
-            pauseAfterMs: sIdx === segs.length - 1 ? 300 : 75
-          });
-        });
-      });
-
-      let qIdx = 0;
-      const playNextQueueItem = () => {
-        if (myToken !== speechTokenCounter) return;
-        if (qIdx >= queue.length) {
-          finishSpeaking();
-          return;
-        }
-        const item = queue[qIdx++];
-        const u = new SpeechSynthesisUtterance(item.text);
-        if (item.lang === "en") {
-          u.voice = enVoice;
-          u.lang = enVoice.lang;
-          u.rate = Math.min(1.0, userRate);
-        } else {
-          u.voice = viVoice;
-          u.lang = viVoice.lang;
-          u.rate = userRate;
-        }
-        u.onend = () => {
-          if (myToken !== speechTokenCounter) return;
-          state.spokenClausesSoFar.push(item.text);
-          speechPauseTimer = setTimeout(playNextQueueItem, item.pauseAfterMs);
-        };
-        u.onerror = playNextQueueItem;
-        synth.speak(u);
-      };
-      playNextQueueItem();
-      return;
-    }
-
-    // NHÁNH 4: Cloud TTS Proxy (/api/tts trên Vercel) hoặc Fallback OS Speech
-    const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
-    if (isHttp) {
-      const streamQueue = [];
-      if (lang === "en") {
-        clauses.forEach(cl => streamQueue.push({ tl: "en", text: cl, pauseMs: 280 }));
-      } else {
-        clauses.forEach(cl => {
-          const segs = tokenizeBilingualSegments(cl);
-          segs.forEach((seg, sIdx) => {
-            streamQueue.push({
-              tl: seg.lang === "en" ? "en" : "vi",
-              text: seg.text,
-              pauseMs: sIdx === segs.length - 1 ? 300 : 65
-            });
-          });
-        });
-      }
-
-      const preloadedAudios = streamQueue.map(item => {
-        const url = `/api/tts?tl=${encodeURIComponent(item.tl)}&q=${encodeURIComponent(
-          item.text.slice(0, 175)
-        )}`;
-        const a = new Audio(url);
-        a.preload = "auto";
-        a.playbackRate = userRate;
-        return { audio: a, pauseMs: item.pauseMs, text: item.text };
-      });
-
-      let sIdx = 0;
-      const playNextPreloaded = () => {
-        if (myToken !== speechTokenCounter) return;
-        if (sIdx >= preloadedAudios.length) {
-          finishSpeaking();
-          return;
-        }
-        const current = preloadedAudios[sIdx++];
-        activeAudioEl = current.audio;
-        current.audio.onended = () => {
-          if (myToken !== speechTokenCounter) return;
-          state.spokenClausesSoFar.push(current.text);
-          speechPauseTimer = setTimeout(playNextPreloaded, current.pauseMs);
-        };
-        current.audio.onerror = () => {
-          if (myToken !== speechTokenCounter) return;
-          playNextPreloaded();
-        };
-        current.audio.play().catch(() => finishSpeaking());
-      };
-      playNextPreloaded();
-      return;
-    }
-
-    // NHÁNH 5 (Fallback cuối cùng khi chạy file:// và chưa load được voice): dùng giọng mặc định hệ điều hành
-    if (synth) {
+    if (canUseSpeechSynthesis) {
       const u = new SpeechSynthesisUtterance(preparedScript);
-      u.lang = lang === "en" ? "en-US" : "vi-VN";
-      u.rate = userRate;
-      u.onend = finishSpeaking;
-      u.onerror = finishSpeaking;
-      synth.speak(u);
-      return;
+      const chosenVoice = lang === "en" ? enVoice : (multilingualViVoice || viVoice);
+      if (chosenVoice) {
+        u.voice = chosenVoice;
+        u.lang = chosenVoice.lang;
+      } else {
+        u.lang = lang === "en" ? "en-US" : "vi-VN";
+      }
+      u.rate = Math.max(0.95, Math.min(1.08, userRate));
+      u.pitch = 1.0;
+
+      let started = false;
+      u.onstart = () => {
+        started = true;
+      };
+
+      u.onend = () => {
+        if (myToken !== speechTokenCounter) return;
+        state.spokenClausesSoFar = [preparedScript];
+        finishSpeaking();
+      };
+
+      u.onerror = () => {
+        if (myToken !== speechTokenCounter) return;
+        playSeamlessAudioStream(preparedScript, lang, userRate, myToken, finishSpeaking);
+      };
+
+      // Safeguard: nếu trình duyệt im lặng không kích hoạt onstart sau 1200ms, tự động chuyển sang Audio Stream
+      setTimeout(() => {
+        if (!started && myToken === speechTokenCounter && state.isAiSpeaking) {
+          try { synth.cancel(); } catch (_) {}
+          playSeamlessAudioStream(preparedScript, lang, userRate, myToken, finishSpeaking);
+        }
+      }, 1200);
+
+      try {
+        synth.speak(u);
+        return;
+      } catch (_) {}
     }
 
-    finishSpeaking();
+    // 2. Fallback: Phát qua Serverless TTS Audio Stream (/api/tts) theo từng câu hoàn chỉnh mượt mà
+    playSeamlessAudioStream(preparedScript, lang, userRate, myToken, finishSpeaking);
+  }
+
+  /**
+   * Phát âm thanh qua Audio Stream liền mạch (chỉ ngắt ở dấu chấm câu tự nhiên, không ngắt vụn từng từ)
+   */
+  function playSeamlessAudioStream(fullText, lang, userRate, myToken, onComplete) {
+    const sentences = String(fullText)
+      .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+      ?.map(s => s.trim())
+      .filter(Boolean) || [fullText];
+
+    const tl = lang === "en" ? "en" : "vi";
+    const audioQueue = sentences.map(sentence => {
+      const url = `/api/tts?tl=${encodeURIComponent(tl)}&q=${encodeURIComponent(sentence.slice(0, 190))}`;
+      const a = new Audio(url);
+      a.preload = "auto";
+      a.playbackRate = userRate || 1.0;
+      return a;
+    });
+
+    let currIdx = 0;
+    const playNext = () => {
+      if (myToken !== speechTokenCounter) return;
+      if (currIdx >= audioQueue.length) {
+        onComplete();
+        return;
+      }
+      const a = audioQueue[currIdx++];
+      activeAudioEl = a;
+      a.onended = () => {
+        if (myToken !== speechTokenCounter) return;
+        playNext();
+      };
+      a.onerror = () => {
+        if (myToken !== speechTokenCounter) return;
+        playNext();
+      };
+      a.play().catch(() => onComplete());
+    };
+    playNext();
   }
 
   // ==================== MICROPHONE CAPTURE & VIET-ENG SPEECH RECOGNITION ====================

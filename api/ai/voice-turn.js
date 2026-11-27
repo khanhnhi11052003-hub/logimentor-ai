@@ -130,54 +130,69 @@ NHIỆM VỤ:
       })
     });
 
-    const candidateModels = [
-      "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-      "gemini-3.8-flash-lite",
-      "gemini-3.8-flash"
+    const candidateConfigs = [
+      { model: "gemini-2.5-flash-lite", thinkingConfig: { thinkingBudget: 0 } },
+      { model: "gemini-2.5-flash", thinkingConfig: { thinkingBudget: 0 } },
+      { model: "gemini-3-flash-preview" },
+      { model: "gemini-3.8-flash-lite" }
     ];
     let lastErr = "";
     let lastStatus = 500;
 
-    for (const modelName of candidateModels) {
-      const resp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{ text: systemPrompt }]
-            },
-            contents: [{ role: "user", parts }],
-            generationConfig: {
-              temperature: 0.35,
-              responseMimeType: "application/json",
-              responseSchema: VOICE_TURN_SCHEMA
-            }
-          })
+    for (const cfg of candidateConfigs) {
+      try {
+        const genConfig = {
+          temperature: 0.35,
+          maxOutputTokens: 450,
+          responseMimeType: "application/json",
+          responseSchema: VOICE_TURN_SCHEMA
+        };
+        if (cfg.thinkingConfig) {
+          genConfig.thinkingConfig = cfg.thinkingConfig;
         }
-      );
 
-      if (!resp.ok) {
-        lastStatus = resp.status;
-        lastErr = await resp.text();
-        if (resp.status === 401 || resp.status === 403) break;
+        const resp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`,
+          {
+            method: "POST",
+            signal: AbortSignal.timeout(8500),
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: systemPrompt }]
+              },
+              contents: [{ role: "user", parts }],
+              generationConfig: genConfig
+            })
+          }
+        );
+
+        if (!resp.ok) {
+          lastStatus = resp.status;
+          lastErr = await resp.text();
+          if (resp.status === 401 || resp.status === 403) break;
+          continue;
+        }
+
+        const data = await resp.json();
+        const rawJson = (data?.candidates?.[0]?.content?.parts || [])
+          .map(p => p.text || "")
+          .join("")
+          .trim();
+        if (!rawJson) continue;
+
+        const parsed = JSON.parse(rawJson);
+        if (alreadyAskedFollowup) {
+          parsed.needs_followup = false;
+        }
+        return res.status(200).json(parsed);
+      } catch (loopErr) {
+        lastErr = loopErr?.message || String(loopErr);
         continue;
       }
-
-      const data = await resp.json();
-      const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawJson) continue;
-
-      const parsed = JSON.parse(rawJson);
-      if (alreadyAskedFollowup) {
-        parsed.needs_followup = false;
-      }
-      return res.status(200).json(parsed);
     }
 
     return res.status(lastStatus).json({

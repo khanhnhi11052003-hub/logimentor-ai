@@ -165,50 +165,58 @@ export default async function handler(req, res) {
       2
     );
 
-    const candidateModels = [
-      "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-      "gemini-3.8-flash-lite",
-      "gemini-3.8-flash"
+    const candidateConfigs = [
+      { model: "gemini-2.5-flash", thinkingConfig: { thinkingBudget: 0 } },
+      { model: "gemini-2.5-flash-lite", thinkingConfig: { thinkingBudget: 0 } },
+      { model: "gemini-3-flash-preview" },
+      { model: "gemini-3.8-flash-lite" }
     ];
     let geminiResp = null;
     let lastErrText = "";
 
-    for (const modelName of candidateModels) {
-      geminiResp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{ text: LOGISTICS_SCORING_SYSTEM_PROMPT }]
-            },
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  {
-                    text: `Dữ liệu buổi phỏng vấn cần chấm điểm:\n${userPromptPayload}`
-                  }
-                ]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              responseMimeType: "application/json",
-              responseSchema: SCORE_SESSION_RESPONSE_SCHEMA
-            }
-          })
-        }
-      );
+    for (const cfg of candidateConfigs) {
+      try {
+        const genConfig = {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+          responseSchema: SCORE_SESSION_RESPONSE_SCHEMA
+        };
+        if (cfg.thinkingConfig) genConfig.thinkingConfig = cfg.thinkingConfig;
 
-      if (geminiResp.ok) break;
-      lastErrText = await geminiResp.text();
-      if (geminiResp.status === 401 || geminiResp.status === 403) break;
+        geminiResp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`,
+          {
+            method: "POST",
+            signal: AbortSignal.timeout(12000),
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: LOGISTICS_SCORING_SYSTEM_PROMPT }]
+              },
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `Dữ liệu buổi phỏng vấn cần chấm điểm:\n${userPromptPayload}`
+                    }
+                  ]
+                }
+              ],
+              generationConfig: genConfig
+            })
+          }
+        );
+
+        if (geminiResp.ok) break;
+        lastErrText = await geminiResp.text();
+        if (geminiResp.status === 401 || geminiResp.status === 403) break;
+      } catch (e) {
+        lastErrText = e?.message || String(e);
+      }
     }
 
     if (!geminiResp || !geminiResp.ok) {

@@ -647,16 +647,33 @@
       voices.find(v => v.lang.toLowerCase().startsWith("en-us") && !isLegacyOfflineSapi(v)) ||
       voices.find(v => v.lang.toLowerCase().startsWith("en") && !isLegacyOfflineSapi(v));
 
-    // 3. Bất kỳ giọng vi-VN tốt nào không nằm trong danh sách SAPI5 lỗi
+    // 3. Bất kỳ giọng vi-VN tốt nào không nằm trong danh sách SAPI5 lỗi, hoặc fallback giọng vi-VN mặc định của máy
     const cleanOtherVi = voices.find(
       v => v.lang.toLowerCase().startsWith("vi") && !isLegacyOfflineSapi(v)
     );
+    const anyViFallback = voices.find(v => v.lang.toLowerCase().startsWith("vi"));
+    const anyEnFallback = voices.find(v => v.lang.toLowerCase().startsWith("en"));
 
     return {
       multilingualViVoice: azureViNatural || null,
-      viVoice: azureViNatural || googleVi || cleanOtherVi || null,
-      enVoice: azureEnNatural || googleEn || null
+      viVoice: azureViNatural || googleVi || cleanOtherVi || anyViFallback || null,
+      enVoice: azureEnNatural || googleEn || anyEnFallback || null
     };
+  }
+
+  function unlockAudioPlayback() {
+    try {
+      if (synth) {
+        if (synth.paused) synth.resume();
+        const silent = new SpeechSynthesisUtterance("");
+        silent.volume = 0;
+        synth.speak(silent);
+      }
+      const AudioContextCls = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextCls && audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+    } catch (_) {}
   }
 
   /**
@@ -916,9 +933,15 @@
       }
 
       const bins = new Uint8Array(analyserNode.frequencyBinCount);
+      const monitorStartedAt = performance.now();
       const checkVoiceEnergy = () => {
         if (!state.isAiSpeaking || !state.enableBargeIn || state.isMicRecording) {
           stopBargeInMonitor();
+          return;
+        }
+        // Bỏ qua 700ms đầu để tránh âm thanh loa ngoài vừa phát dội lại mic
+        if (performance.now() - monitorStartedAt < 700) {
+          bargeInAnimId = requestAnimationFrame(checkVoiceEnergy);
           return;
         }
         analyserNode.getByteFrequencyData(bins);
@@ -929,7 +952,7 @@
         for (let i = startBin; i < endBin; i++) sum += bins[i];
         const avgEnergy = sum / Math.max(1, endBin - startBin);
 
-        if (avgEnergy > 32) {
+        if (avgEnergy > 45) {
           if (!bargeInSpeechStartMs) {
             bargeInSpeechStartMs = performance.now();
           } else if (performance.now() - bargeInSpeechStartMs >= 280) {
@@ -1042,6 +1065,13 @@
     const clauses = splitIntoBreathableClauses(preparedScript);
     const voices = await ensureVoicesLoaded();
     if (myToken !== speechTokenCounter) return;
+
+    // Đợi 45ms sau synth.cancel() và resume() để tránh lỗi trình duyệt Chrome/Edge im lặng
+    await new Promise(r => setTimeout(r, 45));
+    if (myToken !== speechTokenCounter) return;
+    if (synth && synth.paused) {
+      try { synth.resume(); } catch (_) {}
+    }
 
     const { multilingualViVoice, viVoice, enVoice } = pickBestVoices(voices);
     const userRate = Number(state.voiceRate) || 0.96;
@@ -1158,54 +1188,71 @@
       return;
     }
 
-    // NHÁNH 4: Cloud Bilingual Audio Pre-loader
-    const streamQueue = [];
-    if (lang === "en") {
-      clauses.forEach(cl => streamQueue.push({ tl: "en", text: cl, pauseMs: 280 }));
-    } else {
-      clauses.forEach(cl => {
-        const segs = tokenizeBilingualSegments(cl);
-        segs.forEach((seg, sIdx) => {
-          streamQueue.push({
-            tl: seg.lang === "en" ? "en" : "vi",
-            text: seg.text,
-            pauseMs: sIdx === segs.length - 1 ? 300 : 65
+    // NHÁNH 4: Cloud TTS Proxy (/api/tts trên Vercel) hoặc Fallback OS Speech
+    const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+    if (isHttp) {
+      const streamQueue = [];
+      if (lang === "en") {
+        clauses.forEach(cl => streamQueue.push({ tl: "en", text: cl, pauseMs: 280 }));
+      } else {
+        clauses.forEach(cl => {
+          const segs = tokenizeBilingualSegments(cl);
+          segs.forEach((seg, sIdx) => {
+            streamQueue.push({
+              tl: seg.lang === "en" ? "en" : "vi",
+              text: seg.text,
+              pauseMs: sIdx === segs.length - 1 ? 300 : 65
+            });
           });
         });
+      }
+
+      const preloadedAudios = streamQueue.map(item => {
+        const url = `/api/tts?tl=${encodeURIComponent(item.tl)}&q=${encodeURIComponent(
+          item.text.slice(0, 175)
+        )}`;
+        const a = new Audio(url);
+        a.preload = "auto";
+        a.playbackRate = userRate;
+        return { audio: a, pauseMs: item.pauseMs, text: item.text };
       });
+
+      let sIdx = 0;
+      const playNextPreloaded = () => {
+        if (myToken !== speechTokenCounter) return;
+        if (sIdx >= preloadedAudios.length) {
+          finishSpeaking();
+          return;
+        }
+        const current = preloadedAudios[sIdx++];
+        activeAudioEl = current.audio;
+        current.audio.onended = () => {
+          if (myToken !== speechTokenCounter) return;
+          state.spokenClausesSoFar.push(current.text);
+          speechPauseTimer = setTimeout(playNextPreloaded, current.pauseMs);
+        };
+        current.audio.onerror = () => {
+          if (myToken !== speechTokenCounter) return;
+          playNextPreloaded();
+        };
+        current.audio.play().catch(() => finishSpeaking());
+      };
+      playNextPreloaded();
+      return;
     }
 
-    const preloadedAudios = streamQueue.map(item => {
-      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${
-        item.tl
-      }&q=${encodeURIComponent(item.text.slice(0, 175))}`;
-      const a = new Audio(url);
-      a.preload = "auto";
-      a.playbackRate = userRate;
-      return { audio: a, pauseMs: item.pauseMs, text: item.text };
-    });
+    // NHÁNH 5 (Fallback cuối cùng khi chạy file:// và chưa load được voice): dùng giọng mặc định hệ điều hành
+    if (synth) {
+      const u = new SpeechSynthesisUtterance(preparedScript);
+      u.lang = lang === "en" ? "en-US" : "vi-VN";
+      u.rate = userRate;
+      u.onend = finishSpeaking;
+      u.onerror = finishSpeaking;
+      synth.speak(u);
+      return;
+    }
 
-    let sIdx = 0;
-    const playNextPreloaded = () => {
-      if (myToken !== speechTokenCounter) return;
-      if (sIdx >= preloadedAudios.length) {
-        finishSpeaking();
-        return;
-      }
-      const current = preloadedAudios[sIdx++];
-      activeAudioEl = current.audio;
-      current.audio.onended = () => {
-        if (myToken !== speechTokenCounter) return;
-        state.spokenClausesSoFar.push(current.text);
-        speechPauseTimer = setTimeout(playNextPreloaded, current.pauseMs);
-      };
-      current.audio.onerror = () => {
-        if (myToken !== speechTokenCounter) return;
-        playNextPreloaded();
-      };
-      current.audio.play().catch(() => finishSpeaking());
-    };
-    playNextPreloaded();
+    finishSpeaking();
   }
 
   // ==================== MICROPHONE CAPTURE & VIET-ENG SPEECH RECOGNITION ====================
@@ -3477,6 +3524,7 @@ QUY TẮC:
     });
     if (el.btnStartPracticeNow) {
       el.btnStartPracticeNow.addEventListener("click", () => {
+        unlockAudioPlayback();
         saveStudentProfileFromModal();
         startNewPracticeSession();
       });
@@ -3587,6 +3635,7 @@ QUY TẮC:
     }
     if (el.btnReplayQuestionAudio) {
       el.btnReplayQuestionAudio.addEventListener("click", () => {
+        unlockAudioPlayback();
         if (state.lastAiSpokenText) speakMentorText(state.lastAiSpokenText);
       });
     }

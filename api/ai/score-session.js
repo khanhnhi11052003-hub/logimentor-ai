@@ -166,10 +166,8 @@ export default async function handler(req, res) {
     );
 
     const candidateConfigs = [
-      { model: "gemini-2.5-flash", thinkingConfig: { thinkingBudget: 0 } },
-      { model: "gemini-2.5-flash-lite", thinkingConfig: { thinkingBudget: 0 } },
-      { model: "gemini-3-flash-preview" },
-      { model: "gemini-3.8-flash-lite" }
+      { model: "gemini-3.8-flash", thinkingConfig: { thinkingLevel: "LOW" } },
+      { model: "gemini-3.8-flash" }
     ];
     let geminiResp = null;
     let lastErrText = "";
@@ -187,7 +185,7 @@ export default async function handler(req, res) {
           `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`,
           {
             method: "POST",
-            signal: AbortSignal.timeout(12000),
+            signal: AbortSignal.timeout(45000),
             headers: {
               "Content-Type": "application/json",
               "x-goog-api-key": apiKey
@@ -227,7 +225,11 @@ export default async function handler(req, res) {
     }
 
     const geminiData = await geminiResp.json();
-    const rawJson = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const rawJson = (geminiData?.candidates?.[0]?.content?.parts || [])
+      .filter(p => !p.thought)
+      .map(p => p.text || "")
+      .join("")
+      .trim();
     const parsedScoreReport = JSON.parse(rawJson);
 
     // Đảm bảo quy tắc số 3 (cheating_risk_level) luôn chính xác tuyệt đối theo proctoring_logs

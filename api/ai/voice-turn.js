@@ -131,10 +131,8 @@ NHIỆM VỤ:
     });
 
     const candidateConfigs = [
-      { model: "gemini-2.5-flash-lite", thinkingConfig: { thinkingBudget: 0 } },
-      { model: "gemini-2.5-flash", thinkingConfig: { thinkingBudget: 0 } },
-      { model: "gemini-3-flash-preview" },
-      { model: "gemini-3.8-flash-lite" }
+      { model: "gemini-3.8-flash", thinkingConfig: { thinkingLevel: "MINIMAL" } },
+      { model: "gemini-3.8-flash" }
     ];
     let lastErr = "";
     let lastStatus = 500;
@@ -143,7 +141,7 @@ NHIỆM VỤ:
       try {
         const genConfig = {
           temperature: 0.35,
-          maxOutputTokens: 450,
+          maxOutputTokens: 500,
           responseMimeType: "application/json",
           responseSchema: VOICE_TURN_SCHEMA
         };
@@ -155,7 +153,7 @@ NHIỆM VỤ:
           `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`,
           {
             method: "POST",
-            signal: AbortSignal.timeout(8500),
+            signal: AbortSignal.timeout(25000),
             headers: {
               "Content-Type": "application/json",
               "x-goog-api-key": apiKey
@@ -179,6 +177,7 @@ NHIỆM VỤ:
 
         const data = await resp.json();
         const rawJson = (data?.candidates?.[0]?.content?.parts || [])
+          .filter(p => !p.thought)
           .map(p => p.text || "")
           .join("")
           .trim();

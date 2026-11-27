@@ -10,6 +10,8 @@
  *   - POST /api/sessions                       -> Lưu kết quả buổi phỏng vấn của sinh viên lên Cloud
  */
 
+import { verifyTeacherToken } from "./teacher-auth.js";
+
 function getSupabaseConfig() {
   const url = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "";
@@ -19,7 +21,7 @@ function getSupabaseConfig() {
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-teacher-token");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -42,6 +44,14 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
+      const teacherToken = String(req.headers["x-teacher-token"] || "");
+      if (!verifyTeacherToken(teacherToken)) {
+        return res.status(401).json({
+          configured: true,
+          error: "TEACHER_AUTH_REQUIRED",
+          message: "Vui lòng đăng nhập quyền Giảng viên để xem dữ liệu lớp học."
+        });
+      }
       const classCode = (req.query?.class_code || "").trim();
       const params = new URLSearchParams({
         select: "*",

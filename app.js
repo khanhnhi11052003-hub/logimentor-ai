@@ -103,6 +103,7 @@
     supabaseAnonKey: localStorage.getItem("logimentor_supabase_anon_key") || "sb_publishable_LhfjnyQxP1WSSYOlx2-LPg_Lt32C04n",
     cloudTeacherSessions: [],
     isCloudConnected: false,
+    teacherAuthToken: sessionStorage.getItem("logimentor_teacher_token") || "",
     studentProfile: (() => {
       try {
         const raw = localStorage.getItem("logimentor_student_profile_v1");
@@ -178,7 +179,9 @@
       "dmLevelBadge", "dmXpText", "dmGoalLabel", "dmProgressFill", "btnQuickLaunchRecommended",
       "teacherCloudStatusBadge", "teacherCloudDot", "teacherCloudStatusText", "btnSyncTeacherCloud",
       "teacherClassCodeInput", "qsStudentName", "qsStudentMssv", "qsStudentEmail", "qsClassCode",
-      "supabaseUrlInput", "supabaseAnonKeyInput"
+      "supabaseUrlInput", "supabaseAnonKeyInput",
+      "teacherAuthModal", "btnCloseTeacherAuthModal", "btnCancelTeacherAuthModal",
+      "teacherPasscodeInput", "teacherAuthErrorMsg", "btnSubmitTeacherAuth", "btnLogoutTeacher"
     ];
     ids.forEach(id => {
       el[id] = document.getElementById(id);
@@ -349,14 +352,24 @@
   }
 
   async function fetchTeacherSessionsFromCloud() {
+    if (!state.teacherAuthToken) {
+      requestOpenTeacherPortal();
+      return false;
+    }
     const classCode = ((el.teacherClassCodeInput?.value || "LOGI-K22A").trim() || "LOGI-K22A").toUpperCase();
     const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
     updateTeacherCloudStatusUI(false, "Đang đồng bộ Cloud...");
 
-    // 1. Thử lấy từ Vercel Serverless /api/sessions
+    // 1. Thử lấy từ Vercel Serverless /api/sessions (có bảo vệ x-teacher-token)
     if (isHttp) {
       try {
-        const resp = await fetch(`/api/sessions?class_code=${encodeURIComponent(classCode)}`);
+        const resp = await fetch(`/api/sessions?class_code=${encodeURIComponent(classCode)}`, {
+          headers: { "x-teacher-token": state.teacherAuthToken }
+        });
+        if (resp.status === 401) {
+          logoutTeacherPortal(true);
+          return false;
+        }
         if (resp.ok) {
           const data = await resp.json();
           if (data && data.configured && Array.isArray(data.sessions)) {
@@ -549,12 +562,121 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function openTeacherAuthModal(errorMessage = "") {
+    if (el.teacherPasscodeInput) el.teacherPasscodeInput.value = "";
+    if (el.teacherAuthErrorMsg) {
+      el.teacherAuthErrorMsg.textContent = errorMessage;
+      el.teacherAuthErrorMsg.style.display = errorMessage ? "block" : "none";
+    }
+    el.teacherAuthModal?.classList.add("open");
+    setTimeout(() => el.teacherPasscodeInput?.focus(), 60);
+  }
+
+  function enterTeacherPortalAuthorized() {
+    renderTeacherPortal();
+    switchView("teacher", "/teacher");
+    fetchTeacherSessionsFromCloud();
+  }
+
+  async function requestOpenTeacherPortal() {
+    if (!state.teacherAuthToken) {
+      switchView("home", "/");
+      openTeacherAuthModal();
+      return;
+    }
+
+    const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+    if (isHttp) {
+      try {
+        const r = await fetch("/api/teacher-auth", {
+          headers: { "x-teacher-token": state.teacherAuthToken }
+        });
+        if (r.ok) {
+          const data = await r.json();
+          if (!data?.authenticated) {
+            state.teacherAuthToken = "";
+            sessionStorage.removeItem("logimentor_teacher_token");
+            switchView("home", "/");
+            openTeacherAuthModal("Phiên Giảng viên đã hết hạn. Vui lòng nhập lại mã.");
+            return;
+          }
+        }
+      } catch (_) {}
+    }
+    enterTeacherPortalAuthorized();
+  }
+
+  async function submitTeacherAuthLogin() {
+    const passcode = (el.teacherPasscodeInput?.value || "").trim();
+    if (!passcode) {
+      if (el.teacherAuthErrorMsg) {
+        el.teacherAuthErrorMsg.textContent = "Vui lòng nhập mã xác thực Giảng viên.";
+        el.teacherAuthErrorMsg.style.display = "block";
+      }
+      return;
+    }
+
+    const origText = el.btnSubmitTeacherAuth?.textContent || "Mở Cổng Giảng viên";
+    if (el.btnSubmitTeacherAuth) {
+      el.btnSubmitTeacherAuth.disabled = true;
+      el.btnSubmitTeacherAuth.textContent = "Đang xác thực...";
+    }
+
+    try {
+      const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+      if (isHttp) {
+        const resp = await fetch("/api/teacher-auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ passcode })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || !data?.token) {
+          if (el.teacherAuthErrorMsg) {
+            el.teacherAuthErrorMsg.textContent =
+              data?.message || "Mã xác thực Giảng viên không chính xác.";
+            el.teacherAuthErrorMsg.style.display = "block";
+          }
+          return;
+        }
+        state.teacherAuthToken = data.token;
+        sessionStorage.setItem("logimentor_teacher_token", data.token);
+      } else {
+        // Fallback khi test file:// cục bộ
+        if (passcode !== "LOGIMENTOR-GV-2026") {
+          if (el.teacherAuthErrorMsg) {
+            el.teacherAuthErrorMsg.textContent = "Mã xác thực Giảng viên không chính xác.";
+            el.teacherAuthErrorMsg.style.display = "block";
+          }
+          return;
+        }
+        state.teacherAuthToken = "local-teacher-session";
+        sessionStorage.setItem("logimentor_teacher_token", state.teacherAuthToken);
+      }
+
+      el.teacherAuthModal?.classList.remove("open");
+      enterTeacherPortalAuthorized();
+    } finally {
+      if (el.btnSubmitTeacherAuth) {
+        el.btnSubmitTeacherAuth.disabled = false;
+        el.btnSubmitTeacherAuth.textContent = origText;
+      }
+    }
+  }
+
+  function logoutTeacherPortal(reopenLogin = false) {
+    state.teacherAuthToken = "";
+    sessionStorage.removeItem("logimentor_teacher_token");
+    switchView("home", "/");
+    if (reopenLogin) {
+      openTeacherAuthModal("Vui lòng xác thực lại quyền Giảng viên.");
+    }
+  }
+
   function handleHashChange() {
     const rawHash = (window.location.hash || "#/").replace(/^#/, "");
     if (rawHash === "/teacher") {
-      renderTeacherPortal();
-      switchView("teacher", "/teacher");
-      fetchTeacherSessionsFromCloud();
+      requestOpenTeacherPortal();
       return;
     } else if (rawHash.startsWith("/report/")) {
       const sessionId = rawHash.replace("/report/", "").trim();
@@ -4443,13 +4565,26 @@ QUY TẮC:
       el.btnPrintReport.addEventListener("click", () => window.print());
     }
 
-    // Teacher Portal Events
+    // Teacher Portal Events (Bảo vệ bởi Teacher Auth Gate)
     if (el.btnOpenTeacherPortal) {
-      el.btnOpenTeacherPortal.addEventListener("click", () => {
-        renderTeacherPortal();
-        switchView("teacher", "/teacher");
-        fetchTeacherSessionsFromCloud();
+      el.btnOpenTeacherPortal.addEventListener("click", requestOpenTeacherPortal);
+    }
+    if (el.btnSubmitTeacherAuth) {
+      el.btnSubmitTeacherAuth.addEventListener("click", submitTeacherAuthLogin);
+    }
+    if (el.teacherPasscodeInput) {
+      el.teacherPasscodeInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitTeacherAuthLogin();
+        }
       });
+    }
+    [el.btnCloseTeacherAuthModal, el.btnCancelTeacherAuthModal].forEach(b => {
+      if (b) b.addEventListener("click", () => el.teacherAuthModal?.classList.remove("open"));
+    });
+    if (el.btnLogoutTeacher) {
+      el.btnLogoutTeacher.addEventListener("click", () => logoutTeacherPortal(false));
     }
     if (el.btnSyncTeacherCloud) {
       el.btnSyncTeacherCloud.addEventListener("click", fetchTeacherSessionsFromCloud);
@@ -4473,7 +4608,7 @@ QUY TẮC:
       if (b) b.addEventListener("click", () => el.teacherStudentModal?.classList.remove("open"));
     });
 
-    [el.quickStartModal, el.historyModal, el.apiConfigModal, el.teacherStudentModal].forEach(overlay => {
+    [el.quickStartModal, el.historyModal, el.apiConfigModal, el.teacherStudentModal, el.teacherAuthModal].forEach(overlay => {
       if (!overlay) return;
       overlay.addEventListener("click", e => {
         if (e.target === overlay) overlay.classList.remove("open");

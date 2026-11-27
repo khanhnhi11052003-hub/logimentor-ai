@@ -2557,6 +2557,40 @@ a {
   color: #FFFFFF;
 }
 
+.student-home-footer {
+  margin-top: 2.2rem;
+  padding: 1rem 0.25rem 0.5rem;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.teacher-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.35rem 0.72rem;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.teacher-footer-link:hover {
+  border-color: #A5B4FC;
+  color: #4338CA;
+  background: #EEF2FF;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

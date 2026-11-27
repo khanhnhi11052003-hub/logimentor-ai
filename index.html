@@ -67,15 +67,6 @@
           <span>Lịch sử luyện tập</span>
         </button>
 
-        <!-- 4. Nút Cổng Giảng Viên -->
-        <button type="button" class="nav-btn-pill teacher-nav-pill" id="btnOpenTeacherPortal" title="Mở Cổng Quản Lý Lớp dành cho Giảng viên">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-          </svg>
-          <span>Cổng Giảng viên</span>
-        </button>
-
         <!-- Kết nối Gemini API -->
         <button type="button" class="nav-btn-icon" id="btnOpenApiModal" title="Cấu hình Google Gemini API">
           <span class="api-dot" id="apiConnectionDot"></span>
@@ -113,7 +104,7 @@
           </div>
           <div class="hero-highlight-item">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-            <span>Cổng Giảng viên đồng bộ Cloud</span>
+            <span>Chấm điểm Radar 4 trục STAR</span>
           </div>
         </div>
       </section>
@@ -135,6 +126,14 @@
           <!-- Render động 6 thẻ ngành từ data.js -->
         </div>
       </section>
+
+      <footer class="student-home-footer">
+        <span>LogiMentor AI • Cổng Luyện Tập Sinh Viên</span>
+        <button type="button" class="teacher-footer-link" id="btnOpenTeacherPortal">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Đăng nhập Cổng Giảng viên</span>
+        </button>
+      </footer>
     </div>
   </main>
 
@@ -523,6 +522,9 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             <span>Xuất file Excel (.csv)</span>
           </button>
+          <button type="button" class="btn-ghost-sm" id="btnLogoutTeacher" title="Khóa Cổng Giảng viên và quay về Trang Sinh viên" style="color:#DC2626; border-color:#FECACA;">
+            <span>Khóa &amp; Đăng xuất</span>
+          </button>
         </div>
       </div>
 
@@ -862,6 +864,51 @@
 
       <div class="modal-footer">
         <button type="button" class="btn-primary-cta" id="btnOkTeacherStudentModal">Đóng chi tiết</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 5: XÁC THỰC QUYỀN GIẢNG VIÊN (TEACHER GATE)
+       ============================================================================ -->
+  <div class="modal-overlay" id="teacherAuthModal">
+    <div class="modal-dialog" style="max-width:430px;">
+      <div class="modal-head">
+        <div class="qs-domain-header">
+          <div class="qs-icon-box" style="background:#EEF2FF; color:#4F46E5;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div>
+            <span class="qs-badge" style="color:#4F46E5;">KHU VỰC BẢO MẬT</span>
+            <h3 class="modal-title">Xác Thực Cổng Giảng Viên</h3>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseTeacherAuthModal" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <p style="font-size:0.84rem; color:#475569; margin:0; line-height:1.5;">
+          Khu vực này chỉ dành riêng cho Giảng viên để xem bảng điểm lớp học, phân tích lỗ hổng kiến thức và xuất Excel.
+        </p>
+
+        <div class="qs-section-card">
+          <div class="qs-section-title">Mã xác thực Giảng viên (Passcode)</div>
+          <input
+            type="password"
+            id="teacherPasscodeInput"
+            class="clean-input"
+            placeholder="Nhập mã Giảng viên..."
+            autocomplete="off"
+          />
+          <div id="teacherAuthErrorMsg" style="display:none; margin-top:0.45rem; font-size:0.78rem; color:#DC2626; font-weight:600;"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost-sm" id="btnCancelTeacherAuthModal">Hủy</button>
+        <button type="button" class="btn-primary-cta" id="btnSubmitTeacherAuth">
+          <span>Mở Cổng Giảng viên</span>
+        </button>
       </div>
     </div>
   </div>

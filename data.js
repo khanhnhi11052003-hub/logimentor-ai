@@ -54,16 +54,19 @@ window.LOGISTICS_DATA = {
     { pattern: /\b(bi a đi|b r d)\b/gi, replace: "BRD" }
   ],
 
-  // Mentor theo cấp độ luyện tập của sinh viên (Tách biệt hoàn toàn hồ sơ Tiếng Việt & Tiếng Anh)
+  // Mentor theo cấp độ luyện tập của sinh viên (Tách biệt hoàn toàn hồ sơ Tiếng Việt, Tiếng Anh & Tiếng Trung)
   mentorsByLevel: {
     "Intern/Fresher": {
       name: "Chị Minh Anh — Cố vấn Nhân sự Logistics",
       spokenNameVi: "chị Minh Anh, cố vấn tuyển dụng ngành hậu cần và chuỗi cung ứng",
       nameEn: "Sarah Minh — Senior Logistics Talent Coach",
       spokenNameEn: "Sarah, your Senior Logistics Talent Coach",
+      nameZh: "林明英 — 资深物流招聘顾问",
+      spokenNameZh: "林明英，资深物流与供应链招聘顾问",
       role: "Senior Talent Coach • Hướng dẫn tận tình",
       badge: "Cố Vấn Gợi Mở",
       badgeEn: "Supportive Coach",
+      badgeZh: "引导型导师",
       stylePrompt: "Thân thiện, khích lệ tinh thần sinh viên, gợi mở tư duy thực tế ngành Logistics Việt Nam, nhận xét thẳng thắn dễ hiểu."
     },
     Junior: {
@@ -71,9 +74,12 @@ window.LOGISTICS_DATA = {
       spokenNameVi: "anh Hoàng Nam, Quản lý Vận hành",
       nameEn: "Alex Nam — Logistics Operations Manager",
       spokenNameEn: "Alex, your Logistics Operations Manager",
+      nameZh: "陈浩南 — 物流运营经理",
+      spokenNameZh: "陈浩南，物流运营经理",
       role: "Operations Manager • 10 năm kinh nghiệm thực chiến",
       badge: "Mentor Thực Chiến",
       badgeEn: "Operations Mentor",
+      badgeZh: "实战运营导师",
       stylePrompt: "Tập trung vào số liệu vận hành, quy trình SOP, xử lý sự cố hiện trường và kiểm tra kỹ năng tính toán KPI."
     },
     Senior: {
@@ -81,9 +87,12 @@ window.LOGISTICS_DATA = {
       spokenNameVi: "anh Quốc Bảo, Giám đốc Chuỗi cung ứng",
       nameEn: "David Bao — Supply Chain Director",
       spokenNameEn: "David, your Supply Chain Director",
+      nameZh: "张国宝 — 供应链总监",
+      spokenNameZh: "张国宝，跨国企业供应链总监",
       role: "Supply Chain Director • 15 năm kinh nghiệm MNC",
       badge: "Chuyên Gia Cấp Cao",
       badgeEn: "Executive Interviewer",
+      badgeZh: "高管级面试官",
       stylePrompt: "Sắc bén, đòi hỏi tư duy tối ưu chi phí tổng thể (TCO), quản trị rủi ro hệ thống và ra quyết định dựa trên dữ liệu."
     }
   },
@@ -97,8 +106,10 @@ window.LOGISTICS_DATA = {
       name: "Vận tải & Điều phối (TMS)",
       spokenNameVi: "Vận tải và Điều phối đội xe",
       nameEn: "Transportation & Fleet Dispatch",
+      nameZh: "运输与车队调度 (TMS)",
       shortTitle: "TMS & Điều phối",
       shortTitleEn: "TMS & Dispatch",
+      shortTitleZh: "TMS 与调度",
       lucideIcon: "truck",
       pastelBg: "#EEF2FF",
       pastelBorder: "#C7D2FE",
@@ -117,9 +128,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Kiểm soát xe chạy rỗng (Empty Miles) & định mức nhiên liệu",
           title_en: "Controlling Empty Miles & Fleet Fuel Efficiency",
+          title_zh: "控制空驶率 (Empty Miles) 与车队燃油效率",
           question_text: "Khi điều phối đội xe tải giao hàng liên tỉnh, làm thế nào bạn vừa đảm bảo đúng cam kết thời gian giao hàng (Time Window) của khách, vừa giảm tỷ lệ xe quay đầu chạy rỗng (Empty Miles)? Hãy trình bày theo cấu trúc STAR.",
           spoken_vi: "Khi điều phối đội xe tải giao hàng liên tỉnh, làm thế nào bạn vừa đảm bảo đúng khung giờ giao hàng cam kết với khách, vừa giảm tỷ lệ xe quay đầu chạy rỗng? Hãy trình bày câu trả lời theo bốn bước: Tình huống, Nhiệm vụ, Hành động và Kết quả.",
           question_text_en: "When dispatching an inter-provincial truck fleet, how do you meet customer delivery time windows while minimizing empty miles on return trips? Please structure your answer using the STAR method.",
+          question_text_zh: "在调度跨省卡车车队配送时，您如何同时确保满足客户的送货时间窗（Time Window）承诺，并降低回程空驶率（Empty Miles）？请使用 STAR 法则进行阐述。",
           expected_keywords: ["Time Window", "Backhaul", "Empty Miles", "Route Optimization", "GPS / Telematics"],
           keyword_hints_vi: [
             "Khai thác hàng chiều về (Backhaul) từ nhà cung cấp nguyên liệu hoặc sàn ghép hàng",
@@ -131,9 +144,15 @@ window.LOGISTICS_DATA = {
             "Consolidate multi-stop routes (Milk-run / Route Optimization) on TMS",
             "Monitor real-time GPS / Telematics with geofencing alerts for unauthorized stops"
           ],
+          keyword_hints_zh: [
+            "开发回程配货资源（Backhaul），承接原材料供应商回程货源或货运平台拼单",
+            "在 TMS 系统中按区域路线合并订单（循环取货 Milk-run / 路径优化）",
+            "通过 GPS / 车载远程监控实时追踪轨迹，设置异常停靠电子围栏预警"
+          ],
           followup_probe_vi: "Nếu tài xế tự ý ghé dọc đường làm có nguy cơ trễ Time Window của siêu thị 45 phút, trên hệ thống TMS và GPS bạn thiết lập cảnh báo sớm như thế nào?",
           spoken_probe_vi: "Nếu tài xế tự ý ghé dọc đường làm có nguy cơ trễ giờ nhận hàng của siêu thị bốn mươi lăm phút, trên phần mềm điều phối và định vị hành trình, bạn thiết lập cảnh báo sớm như thế nào?",
           followup_probe_en: "If a driver makes an unauthorized stop and risks missing a supermarket delivery window by 45 minutes, what early alerts would you configure on your TMS and GPS system?",
+          followup_probe_zh: "如果司机中途擅自停靠，导致超市收货时间窗可能延误 45 分钟，您会在 TMS 和 GPS 系统中设置哪些早期预警机制？",
           ideal_answer: "(S) Tại đội xe phân phối tuyến Bình Dương – Đồng Nai, tỷ lệ xe quay đầu rỗng từng ở mức 38% gây đội chi phí vận tải. (T) Mục tiêu giữ tỷ lệ giao đúng Time Window >= 98% và kéo Empty Miles xuống dưới 20%. (A) Tôi quy hoạch lại lịch chạy Milk-run trên TMS, thiết lập Geofencing cảnh báo dừng đỗ quá 15 phút qua GPS/Telematics; đồng thời phối hợp bộ phận Thu mua gom nguyên liệu bao bì chiều về (Backhaul) từ các nhà cung cấp dọc tuyến. (R) Sau 2 tháng, tỷ lệ giao đúng giờ đạt 98.6%, giảm 22% quãng đường chạy rỗng và tiết kiệm 14% chi phí dầu Diesel/tháng."
         },
         {
@@ -144,9 +163,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Ghép tuyến nội đô tránh giờ cấm tải & Tính chi phí điều xe tối ưu",
           title_en: "Inner-City Truck Ban Routing & Optimal Dispatch Costing",
+          title_zh: "市区限行时段拼车路线规划与最优调度成本核算",
           question_text: "Lúc 05:30 sáng tại Kho Tổng Bình Tân, bạn cần xếp xe giao 3 đơn hàng trong bảng số liệu bên phải. TP.HCM cấm xe tải trên 2.5 tấn vào nội đô từ 06:00 – 09:00 sáng. Hãy dùng máy tính mini kiểm tra tải trọng/thể tích và đề xuất phương án điều xe có tổng chi phí thấp nhất mà không bị phạt trễ giờ!",
           spoken_vi: "Lúc năm giờ ba mươi sáng tại Kho Tổng Bình Tân, bạn cần xếp xe giao ba đơn hàng trong bảng số liệu bên phải. Thành phố Hồ Chí Minh cấm xe tải trên hai phẩy năm tấn vào nội đô từ sáu giờ đến chín giờ sáng. Bạn hãy dùng máy tính kiểm tra tải trọng, thể tích và đề xuất phương án điều xe có tổng chi phí thấp nhất mà không bị phạt trễ giờ nhé!",
           question_text_en: "At 5:30 AM at the Binh Tan Hub, you must dispatch 3 orders shown in the right-hand table. Ho Chi Minh City bans trucks over 2.5 tons from inner-city districts between 6:00 AM and 9:00 AM. Use the calculator to check weight and volume limits, and propose the lowest-cost dispatch plan with zero late penalties!",
+          question_text_zh: "早上 05:30 在平新总仓，您需要安排车辆配送右侧表格中的 3 笔订单。胡志明市规定 06:00 – 09:00 禁止 2.5 吨以上货车进入市区。请使用计算器核对载重与体积限制，并提出总成本最低且无延误罚款的派车方案！",
           case_study_board: {
             context: "Ca điều phối 05:30 sáng | Kho Bình Tân -> TP.HCM | Cấm tải > 2.5T nội đô (Q1, Q3): 06:00 - 09:00",
             unit_hint: "Gợi ý tính: Cộng kg & CBM của ORD-101 + ORD-102 so với sức chứa XE-1.9T",
@@ -179,6 +200,22 @@ window.LOGISTICS_DATA = {
               "Customer ORD-102 allows Split Delivery across multiple trucks as long as full qty arrives before 08:30."
             ]
           },
+          case_study_board_zh: {
+            context: "05:30 早班调度 | 平新总仓 -> 胡志明市 | 市区限行 (>2.5吨 第1、3郡): 06:00 - 09:00",
+            unit_hint: "提示：将 ORD-101 + ORD-102 的重量(kg)和体积(CBM)相加，与单辆 1.9T 货车上限对比",
+            table_headers: ["订单 / 车辆", "路线 / 车型", "重量", "体积", "时间窗 / 限行规定", "运费 / 延误罚款"],
+            table_rows: [
+              ["ORD-101", "第1郡 (超市 A)", "1,150 kg", "6.2 CBM", "08:00 前送达 (市区)", "延误罚款: 2,000,000 越南盾"],
+              ["ORD-102", "第3郡 (餐饮连锁 B)", "950 kg", "5.4 CBM", "08:30 前送达 (市区)", "延误罚款: 1,500,000 越南盾"],
+              ["ORD-103", "守德市 (经销商 C)", "2,600 kg", "12.0 CBM", "11:30 前送达 (环线外)", "延误罚款: 1,000,000 越南盾"],
+              ["TRUCK-1.9T (x2)", "轻型货车 (市区24小时通行)", "最大 1,900 kg", "最大 10.0 CBM", "06:00 - 09:00 可通行", "1,100,000 越南盾 / 趟"],
+              ["TRUCK-5.0T (x1)", "中型货车 (早高峰限行)", "最大 5,000 kg", "最大 24.0 CBM", "06:00-09:00 禁入第1、3郡", "1,850,000 越南盾 / 趟"]
+            ],
+            notes: [
+              "仓库装卸月台目前有 2 辆 1.9T 货车和 1 辆 5.0T 货车待命。",
+              "客户 ORD-102 允许拆分配送（Split Delivery），只要在 08:30 前全部送达即可。"
+            ]
+          },
           expected_keywords: ["Giờ cấm tải", "Load Factor", "Time Window", "Split Delivery", "Route Optimization", "4,050,000đ"],
           keyword_hints_vi: [
             "ORD-101 + ORD-102 = 1,150 + 950 = 2,100 kg (> 1,900 kg) và 6.2 + 5.4 = 11.6 CBM (> 10.0 CBM) -> Quá tải nếu dồn vào 1 xe 1.9T!",
@@ -190,10 +227,16 @@ window.LOGISTICS_DATA = {
             "Dispatch both 1.9T trucks for inner-city Dist. 1 & Dist. 3 before 08:30; dispatch the 5.0T truck for ORD-103 (Thu Duc outer ring)",
             "Total dispatch cost = 2 × 1,100,000 + 1,850,000 = 4,050,000 VND (avoiding 4,500,000 VND in late penalties)"
           ],
-          followup_rule_regex: "(2,?100|11\\.?6|quá tải|overload|2\\s*xe\\s*1\\.?9|two\\s*1\\.?9|both\\s*1\\.?9|hai\\s*xe\\s*1\\.?9|4,?050|4\\.05|tách|split)",
+          keyword_hints_zh: [
+            "ORD-101 + ORD-102 = 2,100 kg (> 1,900 kg) 且 11.6 CBM (> 10.0 CBM) -> 装进一辆 1.9T 车会严重超载！",
+            "派出 2 辆 1.9T 轻卡分别在 08:30 前配送第 1 郡与第 3 郡；派出 5.0T 货车配送环线外的 ORD-103（守德市）",
+            "总调度运费 = 2 × 1,100,000 + 1,850,000 = 4,050,000 越南盾（成功避免 4,500,000 越南盾的延误罚款）"
+          ],
+          followup_rule_regex: "(2,?100|11\\.?6|quá tải|overload|2\\s*xe\\s*1\\.?9|two\\s*1\\.?9|both\\s*1\\.?9|hai\\s*xe\\s*1\\.?9|4,?050|4\\.05|tách|split|超载|两辆|405万)",
           followup_probe_vi: "Khoan đã! Nếu bạn xếp cả ORD-101 (1,150 kg; 6.2 CBM) và ORD-102 (950 kg; 5.4 CBM) lên chung 1 chiếc XE-1.9T thì tổng lên tới 2,100 kg và 11.6 CBM — vượt trần 1,900 kg và 10 CBM rồi! Bạn chia xe cụ thể thế nào và tổng chi phí điều xe là bao nhiêu?",
           spoken_probe_vi: "Khoan đã! Nếu bạn xếp cả đơn một không một và đơn một không hai lên chung một chiếc xe một phẩy chín tấn thì tổng khối lượng lên tới hai nghìn một trăm ki lô gam và mười một phẩy sáu mét khối, vượt trần tải trọng cho phép rồi! Bạn chia xe cụ thể thế nào và tổng chi phí điều xe là bao nhiêu?",
           followup_probe_en: "Hold on! Combining ORD-101 and ORD-102 onto a single 1.9-ton truck totals 2,100 kilograms and 11.6 cubic meters, which exceeds its 1,900-kilogram and 10-cubic-meter limit! How do you allocate the trucks and what is the exact total dispatch cost?",
+          followup_probe_zh: "等一下！如果把 ORD-101 和 ORD-102 合并装进同一辆 1.9 吨货车，总重将达到 2,100 公斤、总体积 11.6 立方米，已经超过了单车 1,900 公斤和 10 立方米的上限！您具体打算如何拆分配车，最终的总调度运费是多少？",
           ideal_answer: "Bước 1 (Kiểm tra tải trọng & Giờ cấm tải): Cộng ORD-101 + ORD-102 = 2,100 kg và 11.6 CBM, vượt trần 1 xe 1.9T (1,900 kg / 10 CBM); trong khi XE-5.0T bị cấm vào Quận 1, Quận 3 khung 06:00–09:00. Bước 2 (Phương án điều phối chuẩn): Cho xuất phát lúc 05:45 gồm 02 xe 1.9T vào nội đô: Xe 1.9T #1 chở ORD-101 (1,150 kg; 6.2 CBM - Load Factor 62%) giao Quận 1 trước 08:00; Xe 1.9T #2 chở ORD-102 (950 kg; 5.4 CBM) giao Quận 3 trước 08:30. Riêng ORD-103 (2,600 kg; 12 CBM đi Thủ Đức ngoài vành đai cấm tải) điều chiếc XE-5.0T giao thẳng trước 11:30. Bước 3 (Hiệu quả chi phí): Tổng cước = 2 × 1,100,000đ + 1,850,000đ = 4,050,000đ, đạt 100% SLA Time Window, không vi phạm tải trọng và tránh được khoản phạt trễ 4,500,000đ."
         },
         {
@@ -204,9 +247,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Thiết lập bộ KPI đánh giá Nhà xe phụ (Sub-contractors 3PL)",
           title_en: "Designing Weekly Scorecard KPIs for Sub-contracted 3PL Fleets",
+          title_zh: "制定第三方外包车队 (3PL) 每周 KPI 考核体系",
           question_text: "Khi công ty thuê ngoài 5 nhà xe phụ (Sub-contractors) chạy mùa cao điểm Tết, bạn theo dõi những chỉ số KPI nào hàng tuần để thưởng/phạt công bằng và kiểm soát chất lượng giao nhận?",
           spoken_vi: "Khi công ty thuê ngoài năm nhà xe phụ chạy mùa cao điểm Tết, bạn theo dõi những chỉ số đánh giá hiệu quả nào hàng tuần để thưởng phạt công bằng và kiểm soát chất lượng giao nhận?",
           question_text_en: "When outsourcing to five sub-contracted carrier fleets during peak season, which weekly KPIs do you track to enforce service agreements and fair incentives or penalties?",
+          question_text_zh: "在春节旺季期间，公司外包了 5 家第三方承运商车队，您每周会跟踪哪些关键绩效指标（KPI）来实现公平奖惩并把控配送服务质量？",
           expected_keywords: ["OTIF", "POD", "Truck No-show Rate", "Damage Rate", "Cost per Ton-Km"],
           keyword_hints_vi: [
             "OTIF (On-Time In-Full — giao đúng giờ & đủ số lượng)",
@@ -218,9 +263,15 @@ window.LOGISTICS_DATA = {
             "Truck No-show / Late Dispatch Rate (<= 2%)",
             "On-time POD (Proof of Delivery) return lead time for billing closure"
           ],
+          keyword_hints_zh: [
+            "OTIF 准时足量交付率（On-Time In-Full >= 97%）",
+            "车队爽约率 / 派车延误率（Truck No-show Rate <= 2%）",
+            "签收单原件 POD（Proof of Delivery）回收时效，用于财务对账结款"
+          ],
           followup_probe_vi: "Nếu một nhà xe chào giá cước rẻ hơn 8% nhưng luôn nộp trễ biên bản POD giấy tới 15 ngày làm treo công nợ khách hàng, bạn đặt điều khoản chế tài thế nào?",
           spoken_probe_vi: "Nếu một nhà xe chào giá cước rẻ hơn tám phần trăm nhưng luôn nộp trễ biên bản giao nhận gốc tới mười lăm ngày làm treo công nợ khách hàng, bạn đặt điều khoản chế tài trong hợp đồng như thế nào?",
           followup_probe_en: "If a sub-carrier offers 8 percent lower rates but consistently delays returning signed Proof of Delivery documents by 15 days, what contract penalty clause would you enforce?",
+          followup_probe_zh: "如果某家外包车队报价低 8%，但经常拖延 15 天才交回纸质签收单 POD，导致客户账期无法结算，您会在合同中设立怎样的违约约束条款？",
           ideal_answer: "(S) Mùa cao điểm Tết sản lượng tăng gấp đôi khiến đội xe nhà chỉ đáp ứng 55%, phải thuê thêm 5 nhà xe 3PL. (T) Thiết lập bộ Scorecard minh bạch kiểm soát chất lượng giao hàng. (A) Tôi áp dụng 4 KPI trên TMS: 1) OTIF >= 97%; 2) Truck No-show Rate <= 2%; 3) Tỷ lệ hư hỏng hàng < 0.1%; 4) Bắt buộc chụp e-POD lên App tài xế trong 2 giờ sau giao và hoàn POD giấy trong 5 ngày làm việc (gắn liền điều kiện giải ngân cước). (R) Phân bổ ưu tiên tuyến tốt cho Top 2 nhà xe hạng A, giữ OTIF mùa Tết đạt 97.4% và rút ngắn vòng đối soát công nợ từ 18 ngày xuống 6 ngày."
         }
       ]
@@ -233,8 +284,10 @@ window.LOGISTICS_DATA = {
       name: "Kho bãi & Tồn kho (WMS)",
       spokenNameVi: "Quản lý Kho bãi và Tồn kho",
       nameEn: "Warehouse & Inventory Operations",
+      nameZh: "仓储管理与库存控制 (WMS)",
       shortTitle: "WMS & Kho bãi",
       shortTitleEn: "WMS & Warehouse",
+      shortTitleZh: "WMS 与仓储",
       lucideIcon: "warehouse",
       pastelBg: "#ECFDF5",
       pastelBorder: "#A7F3D0",
@@ -253,9 +306,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Quy hoạch vị trí kệ ABC Slotting & Tối ưu quãng đường lấy hàng",
           title_en: "ABC Warehouse Slotting & Order Picking Path Optimization",
+          title_zh: "ABC 库位规划 (Slotting) 与拣货路径优化",
           question_text: "Trong kho phân phối có 3,000 mã SKU nhưng nhân viên lấy hàng (Picker) thường xuyên phải đi bộ quá xa dẫn đến trễ giờ xuất xe. Bạn ứng dụng phân tích ABC và Slotting trên WMS như thế nào để tăng năng suất?",
           spoken_vi: "Trong kho phân phối có ba nghìn mã hàng nhưng nhân viên soạn hàng thường xuyên phải đi bộ quá xa dẫn đến trễ giờ xuất xe. Bạn ứng dụng phương pháp phân loại nhóm hàng chủ lực A B C và quy hoạch vị trí kệ trên hệ thống quản lý kho như thế nào để tăng năng suất?",
           question_text_en: "In a distribution center with 3,000 SKUs, order pickers walk excessive distances causing outbound truck delays. How would you apply ABC classification and warehouse slotting to boost picking productivity?",
+          question_text_zh: "在一个拥有 3,000 个 SKU 的分拨中心，拣货员经常需要长距离步行导致出库装车延误。您如何运用 ABC 分类法和 WMS 库位规划（Slotting）来提升拣货效率？",
           expected_keywords: ["ABC Analysis", "Slotting", "Fast-moving", "Golden Zone", "Batch Picking"],
           keyword_hints_vi: [
             "Đưa nhóm A (20% SKU chiếm 80% lượt lấy hàng) ra dãy kệ gần khu đóng gói/Outbound và ở tầng ngang thắt lưng (Golden Zone)",
@@ -265,9 +320,14 @@ window.LOGISTICS_DATA = {
             "Place Class-A fast-moving SKUs (20% SKUs driving 80% picks) near outbound staging at waist-level Golden Zone racks",
             "Combine multi-order picks into S-shape Batch / Wave Picking paths on mobile barcode scanners"
           ],
+          keyword_hints_zh: [
+            "将 A 类高频快流品（占 80% 拣货量的 20% SKU）布置在靠近出库复核区的黄金腰部货位（Golden Zone）",
+            "在 PDA 手持终端上采用 S 型路径进行批量拣选 / 波次拣货（Batch / Wave Picking）"
+          ],
           followup_probe_vi: "Khi danh mục hàng bán chạy thay đổi theo mùa (ví dụ bánh trung thu hoặc bia nước ngọt dịp Tết), bao lâu bạn cập nhật lại Slotting một lần?",
           spoken_probe_vi: "Khi danh mục hàng bán chạy thay đổi theo mùa, ví dụ bánh trung thu hoặc bia nước ngọt dịp Tết, bao lâu bạn rà soát và sắp xếp lại vị trí kệ một lần để không làm gián đoạn vận hành?",
           followup_probe_en: "When fast-moving items shift seasonally, how frequently do you execute re-slotting without disrupting daily warehouse operations?",
+          followup_probe_zh: "当季节性畅销品发生轮动时（例如中秋月饼或春节饮料旺季），您多久进行一次库位重整（Re-slotting）才能既保持高效又不影响日常出库？",
           ideal_answer: "(S) Kho FMCG rộng 8,000m2 với 3,000 SKU trước đây xếp hàng ngẫu nhiên vào ô trống khiến Picker mất 4.5 phút/dòng đơn. (T) Tăng năng suất lấy hàng tối thiểu 30%. (A) Tôi trích xuất dữ liệu Pick Frequency 90 ngày trên WMS để phân loại ABC, quy hoạch nhóm A (Fast-moving) ra đầu kệ gần khu Staging/Outbound và đặt ở tầng thấp Golden Zone; kết hợp chuyển sang Batch Picking theo lộ trình chữ S trên PDA. (R) Giảm 38% quãng đường đi bộ, tăng năng suất từ 42 lên 61 dòng/giờ và 100% xe xuất kho đúng Cut-off time."
         },
         {
@@ -278,9 +338,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Xử lý lệch tồn kho 5% & Hàng cận date tại Kho Lạnh Thủ Đức",
           title_en: "Resolving 5% Stock Variance & Short Shelf-Life Risk in Cold Storage",
+          title_zh: "处理守德冷库 5% 库存差异与临期商品风险",
           question_text: "Trong đợt kiểm kê định kỳ sáng nay tại Kho Lạnh thực phẩm, bạn phát hiện bảng số liệu bên phải có sự chênh lệch lớn ở 2 mã SKU chủ lực. Hãy dùng máy tính tính giá trị chênh lệch, đánh giá rủi ro đơn hàng sáng mai và nêu từng bước xử lý trong 24 giờ tới!",
           spoken_vi: "Trong đợt kiểm kê định kỳ sáng nay tại Kho Lạnh thực phẩm Thủ Đức, bạn phát hiện bảng số liệu bên phải có sự chênh lệch lớn ở hai mặt hàng chủ lực. Hãy dùng máy tính để tính giá trị tiền chênh lệch, đánh giá rủi ro đối với đơn hàng siêu thị sáng mai và nêu từng bước xử lý trong hai mươi tư giờ tới!",
           question_text_en: "During this morning's cycle count at Thu Duc Cold Storage, you discovered major variances in two core SKUs shown in the right-hand table. Calculate the financial variance, evaluate tomorrow morning's supermarket order risk, and outline your 24-hour action plan!",
+          question_text_zh: "在今天上午守德食品冷库的定期盘点中，您发现右侧数据表中的两个核心 SKU 存在较大库存差异。请使用计算器核算差异金额，评估明天早班超市订单的履约风险，并说明未来 24 小时的分步处理方案！",
           case_study_board: {
             context: "Ngày kiểm kê: 26/11/2026 | Kho Lạnh Thủ Đức (2°C - 4°C) | Dung sai cho phép: ±0.2%",
             unit_hint: "Tính giá trị lệch (-100 × 320,000đ) & đối chiếu HSD 5 ngày vs yêu cầu 7 ngày của Siêu thị X",
@@ -307,6 +369,19 @@ window.LOGISTICS_DATA = {
               "Last night's outbound shift included 02 newly onboarded temporary pickers."
             ]
           },
+          case_study_board_zh: {
+            context: "盘点日期: 2026/11/26 | 守德冷库 (2°C - 4°C) | 允许误差范围: ±0.2%",
+            unit_hint: "提示：核算差异金额 (-100 × 320,000 越南盾)，并对比 5 天剩余保质期与超市 X 要求的 >= 7 天标准",
+            table_headers: ["SKU 编码", "商品名称", "WMS 系统库存", "实物盘点", "差异数量", "保质期 / 剩余天数", "单位成本"],
+            table_rows: [
+              ["MILK-01", "巴氏杀菌鲜奶 1L", "2,000 箱", "1,900 箱", "-100 箱 (-5.0%)", "12/01 (仅剩 5 天)", "320,000 越南盾/箱"],
+              ["BEEF-05", "冰鲜澳洲牛肉", "500 kg", "515 kg", "+15 kg (+3.0%)", "12/15 (剩余 19 天)", "450,000 越南盾/kg"]
+            ],
+            notes: [
+              "超市 X 紧急预订明天早上 06:00 交付 800 箱 MILK-01（合同严格要求剩余保质期 >= 7 天）。",
+              "昨晚出库夜班有 2 名新入职的临时工参与了拣货作业。"
+            ]
+          },
           expected_keywords: ["FEFO", "Quarantine", "Audit Trail", "Cycle Count", "Root Cause Analysis", "Inventory Adjustment"],
           keyword_hints_vi: [
             "Giá trị lệch MILK-01: -100 × 320,000 = -32,000,000đ; BEEF-05: +15 × 450,000 = +6,750,000đ",
@@ -318,10 +393,16 @@ window.LOGISTICS_DATA = {
             "Critical: MILK-01 has only 5 days shelf-life (< 7 days required by Supermarket X) -> Lock batch in WMS Quarantine immediately!",
             "Recount adjacent bins (Cycle Count) and inspect WMS Audit Trail + CCTV from last night's temp-staff shift"
           ],
-          followup_rule_regex: "(siêu thị|supermarket|800\\s*thùng|800\\s*carton|7\\s*ngày|7\\s*day|5\\s*ngày|5\\s*day|6h|06:00|sáng mai|quarantine|khu cách ly|cách ly|đổi lô)",
+          keyword_hints_zh: [
+            "差异金额核算：MILK-01 = -100 × 320,000 = -32,000,000 越南盾；BEEF-05 = +15 × 450,000 = +6,750,000 越南盾",
+            "极高风险：MILK-01 仅剩 5 天保质期（低于超市 X 要求的 7 天）-> 立即在 WMS 锁定该批次并移入隔离区（Quarantine）严防错发！",
+            "对相邻货位进行交叉循环盘点（Cycle Count），调取昨晚夜班临时工的 WMS 操作日志（Audit Trail）与监控录像"
+          ],
+          followup_rule_regex: "(siêu thị|supermarket|800\\s*thùng|800\\s*carton|7\\s*ngày|7\\s*day|5\\s*ngày|5\\s*day|6h|06:00|sáng mai|quarantine|khu cách ly|cách ly|đổi lô|超市|800|7天|5天|隔离)",
           followup_probe_vi: "Với đơn hàng 800 thùng giao Siêu thị X vào 6h sáng mai, hàng MILK-01 hiện tại chỉ còn 5 ngày HSD trong khi siêu thị yêu cầu tối thiểu 7 ngày — bạn xử lý đơn này thế nào?",
           spoken_probe_vi: "Với đơn hàng tám trăm thùng sữa giao cho Siêu thị X vào sáu giờ sáng mai, lô sữa hiện tại chỉ còn năm ngày hạn sử dụng trong khi siêu thị yêu cầu tối thiểu bảy ngày. Bạn xử lý đơn hàng này như thế nào?",
           followup_probe_en: "Regarding the urgent 800-carton milk order for Supermarket X at 6:00 AM tomorrow, the current batch only has 5 days of shelf-life left while they require at least 7 days. How do you handle this order?",
+          followup_probe_zh: "关于明天早上 06:00 发往超市 X 的 800 箱鲜奶订单，目前这批货只剩 5 天保质期，而超市合同要求至少 7 天以上。您会如何处理这笔订单？",
           ideal_answer: "Bước 1 (Khóa rủi ro đơn hàng & Hàng cận date): Lô MILK-01 đang lệch âm -100 thùng (-32,000,000đ giá vốn) và chỉ còn 5 ngày HSD — không đủ chuẩn >= 7 ngày của Siêu thị X. Tôi lập tức khóa mã lô này trên WMS và chuyển sang khu cách ly (Quarantine) để chặn xuất nhầm lúc 6h sáng mai; đồng thời báo khẩn Sales/Supply Planning điều chuyển lô date mới từ kho nhà máy giao cho Siêu thị X, còn 1,900 thùng cận date (trị giá 608 triệu đồng) đề xuất xả nhanh kênh HORECA theo nguyên tắc FEFO. Bước 2 (Root Cause Analysis): Thực hiện Cycle Count đếm chéo các vị trí Bin lân cận, trích xuất lịch sử giao dịch (Audit Trail) và camera ca đêm của 2 nhân viên thời vụ để xác định lỗi xuất không quét PDA hay cân nhầm sang BEEF-05 (+15 kg, +6.75 triệu đồng). Bước 3: Lập biên bản đối soát chứng từ và trình duyệt bút toán điều chỉnh tồn kho (Inventory Adjustment) trên WMS trong 24 giờ."
         },
         {
@@ -332,9 +413,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Thiết kế chương trình Cycle Count đạt Độ chính xác tồn kho IRA >= 99.8%",
           title_en: "Designing Daily Cycle Counting for >= 99.8% Inventory Accuracy",
+          title_zh: "设计日常循环盘点体系以实现 >= 99.8% 的库存准确率 (IRA)",
           question_text: "Thay vì đóng cửa kho 3 ngày cuối năm để kiểm kê toàn bộ, bạn thiết kế quy trình Cycle Count hàng ngày trên WMS như thế nào để duy trì Độ chính xác tồn kho (IRA) đạt từ 99.8% trở lên?",
           spoken_vi: "Thay vì phải đóng cửa kho ba ngày cuối năm để kiểm kê toàn bộ, bạn thiết kế quy trình kiểm kê cuốn chiếu hàng ngày trên hệ thống quản lý kho như thế nào để duy trì độ chính xác tồn kho đạt từ chín mươi chín phẩy tám phần trăm trở lên?",
           question_text_en: "Instead of shutting down the warehouse for three days for year-end physical inventory, how do you design a daily cycle counting program to sustain Inventory Record Accuracy at 99.8 percent or higher?",
+          question_text_zh: "无需年底封仓三天进行全盘，您如何在 WMS 上设计每日循环盘点（Cycle Count）流程，以长期维持 99.8% 以上的库存准确率（IRA）？",
           expected_keywords: ["Cycle Count", "IRA", "Blind Count", "ABC Frequency", "PDA Scanning"],
           keyword_hints_vi: [
             "Áp dụng đếm mù (Blind Count) trên PDA — ẩn số tồn hệ thống để nhân viên phải đếm thật",
@@ -344,9 +427,14 @@ window.LOGISTICS_DATA = {
             "Enforce Blind Counting on mobile scanners — hide system stock quantities so staff must count physically",
             "Stratify count frequency by ABC velocity: Class A bi-weekly, Class B monthly, Class C quarterly"
           ],
+          keyword_hints_zh: [
+            "在 PDA 终端上强制执行盲盘（Blind Count）—— 隐藏系统账面数量，确保盘点员实盘实报",
+            "按 ABC 分类设定盘点频次：A 类商品每两周盘一次，B 类每月一次，C 类每季度一次"
+          ],
           followup_probe_vi: "Vì sao khi phát phiếu Cycle Count trên PDA, bạn bắt buộc phải ẩn số lượng tồn hệ thống (Blind Count)?",
           spoken_probe_vi: "Vì sao khi phát phiếu kiểm kê trên thiết bị cầm tay, bạn bắt buộc phải ẩn số lượng tồn kho trên hệ thống để nhân viên đếm mù?",
           followup_probe_en: "Why must system stock quantities be hidden from warehouse counters through blind counting during cycle count execution?",
+          followup_probe_zh: "为什么在 PDA 下发循环盘点任务时，必须隐藏系统账面库存数量实行盲盘（Blind Count）？",
           ideal_answer: "(S) Kiểm kê đóng kho cuối năm làm ngưng trệ giao hàng 72 giờ. (T) Duy trì IRA >= 99.8% quanh năm bằng kiểm kê cuốn chiếu. (A) Tôi cấu hình WMS tự động phát lệnh Cycle Count đầu ca sáng theo tần suất ABC (nhóm A đếm 2 tuần/lần, B hàng tháng, C hàng quý) và bật chế độ Blind Count trên PDA để chống tâm lý điền khống theo số hệ thống. Mọi chênh lệch vượt ngưỡng đều tự động kích hoạt phiếu Recount độc lập cho Giám sát và truy vết Audit Trail ngay trong ca. (R) IRA duy trì đạt 99.88% suốt 4 quý và bỏ hoàn toàn đợt đóng kho cuối năm."
         }
       ]
@@ -359,8 +447,10 @@ window.LOGISTICS_DATA = {
       name: "Giao hàng chặng cuối (Last-mile)",
       spokenNameVi: "Giao hàng chặng cuối",
       nameEn: "Last-mile Delivery & Hub Operations",
+      nameZh: "末端配送与网点运营 (Last-mile)",
       shortTitle: "Giao nhận Chặng cuối",
       shortTitleEn: "Last-mile Delivery",
+      shortTitleZh: "末端配送与网点",
       lucideIcon: "bike",
       pastelBg: "#FFFBEB",
       pastelBorder: "#FDE68A",
@@ -379,9 +469,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Kiểm soát tiền thu hộ COD & Chốt ca bưu tá cuối ngày",
           title_en: "Cash-on-Delivery (COD) Reconciliation & Shift-End Hub Closing",
+          title_zh: "货到付款 (COD) 对账管控与快递员下班封账流程",
           question_text: "Tại bưu cục giao hàng TMĐT với 40 shipper thu hộ hàng trăm triệu đồng tiền mặt mỗi ngày, bạn thiết lập quy trình đối soát tiền COD và hàng hoàn cuối ca như thế nào để không xảy ra thất thoát?",
           spoken_vi: "Tại bưu cục giao hàng thương mại điện tử với bốn mươi bưu tá thu hộ hàng trăm triệu đồng tiền mặt mỗi ngày, bạn thiết lập quy trình đối soát tiền thu hộ và kiểm đếm hàng hoàn cuối ca như thế nào để không xảy ra thất thoát?",
           question_text_en: "At an E-commerce delivery hub with 40 couriers collecting large amounts of cash on delivery daily, how do you control cash reconciliation and return parcels at shift-end?",
+          question_text_zh: "在一个拥有 40 名快递员、每日代收数亿越南盾货到付款（COD）现金的电商配送网点，您如何设计下班时的 COD 对账与退件核查流程，以确保零资金流失？",
           expected_keywords: ["COD Reconciliation", "Hạn mức ví Shipper", "VietQR động", "Return Scan", "Đối soát cuối ca"],
           keyword_hints_vi: [
             "Khóa trần tiền mặt trên tay Shipper (chạm ngưỡng 5 triệu đồng phải nộp/chuyển khoản tự động mới nhận tiếp đơn mới)",
@@ -391,9 +483,14 @@ window.LOGISTICS_DATA = {
             "Enforce an in-hand cash ceiling on the courier app (auto-block new dispatches once cash hits threshold until remitted)",
             "Use dynamic order-level QR payment codes to minimize cash handling and require 100% Return Scan on failed parcels before shift sign-off"
           ],
+          keyword_hints_zh: [
+            "在快递员 App 上设置手持现金限额封顶（超过 500 万越南盾自动锁单，必须缴款/转账后才能继续派送）",
+            "为每笔运单生成动态专属收款二维码（VietQR）直达公司账户，并在下班封账前对所有未妥投退件执行 100% 扫描入库（Return Scan）"
+          ],
           followup_probe_vi: "Nếu cuối ca một shipper báo khách đã nhận hàng nhưng xin khất sang sáng mai mới nộp tiền mặt COD thì bạn xử lý thế nào theo kỷ luật bưu cục?",
           spoken_probe_vi: "Nếu cuối ca có một bưu tá báo khách đã nhận hàng nhưng xin khất sang sáng mai mới nộp lại tiền mặt thu hộ, bạn xử lý như thế nào theo kỷ luật bưu cục?",
           followup_probe_en: "If a courier marks a parcel as delivered without remitting the collected cash and asks to delay payment until tomorrow morning, how do you handle it?",
+          followup_probe_zh: "如果下班结算时，有快递员称客户已签收但请求延迟到明天早上再上交 COD 现金，按网点纪律您会如何处理？",
           ideal_answer: "(S) Bưu cục xử lý 3,500 đơn/ngày với tỷ lệ COD tiền mặt 65%, dễ phát sinh lệch quỹ cuối ca. (T) Đảm bảo Zero Cash Discrepancy 100% trong ngày. (A) Tôi triển khai 3 chốt chặn: 1) Áp trần giữ tiền mặt 5,000,000đ trên App Shipper — chạm trần tự động khóa nhận đơn mới cho tới khi nộp quỹ; 2) In/hiển thị VietQR định danh theo mã vận đơn giúp kéo tỷ lệ tiền mặt xuống 28%; 3) Cuối ca bắt buộc quét Return Scan từng bưu kiện giao thất bại khớp trạng thái NDR trước khi ký đóng ca. (R) 100% kỳ đối soát khớp tuyệt đối suốt 6 tháng và giảm thời gian chốt ca tối từ 60 xuống 20 phút."
         },
         {
@@ -404,9 +501,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Tính Cost per Drop & Cắt giảm tỷ lệ giao thất bại (NDR) dịp Mega Sale 11/11",
           title_en: "Calculating Cost per Drop & Reducing Failed Deliveries on 11/11 Peak Day",
+          title_zh: "核算单票配送成本 (Cost per Drop) 并降低双十一大促未妥投率 (NDR)",
           question_text: "Báo cáo cuối ngày 11/11 tại Bưu cục Quận 7 (bảng bên phải) cho thấy chi phí trên mỗi đơn giao thành công (Cost per Successful Drop) đang đội lên cao. Định mức mục tiêu là Cost per Drop <= 11,500đ/đơn và tỷ lệ giao thành công lần đầu (FADR) >= 92%. Hãy dùng máy tính tính chính xác Cost per Drop từng tuyến, FADR toàn Hub và đề xuất giải pháp khắc phục cho Tuyến B & Tuyến C!",
           spoken_vi: "Báo cáo cuối ngày hội mua sắm mười một tháng mười một tại Bưu cục Quận Bảy ở bảng bên phải cho thấy chi phí trên mỗi đơn giao thành công đang đội lên cao. Định mức mục tiêu là chi phí tối đa mười một nghìn năm trăm đồng một đơn và tỷ lệ giao thành công lần đầu đạt từ chín mươi hai phần trăm trở lên. Bạn hãy dùng máy tính để tính chính xác chi phí trên mỗi đơn của từng tuyến, tỷ lệ giao thành công toàn bưu cục và đề xuất giải pháp khắc phục cho Tuyến B và Tuyến C!",
           question_text_en: "End-of-day November 11 peak metrics at the District 7 Hub in the right-hand table show rising delivery costs. Targets are Cost per Successful Drop at most 11,500 VND and First-Attempt Delivery Rate at least 92 percent. Calculate the exact Cost per Drop per route, overall Hub First-Attempt Delivery Rate, and propose operational fixes for Route B and Route C!",
+          question_text_zh: "第 7 郡配送网点 11/11 晚间报表（见右侧表格）显示单票成功配送成本（Cost per Successful Drop）大幅攀升。目标标准为单票成本 <= 11,500 越南盾，首次妥投率（FADR）>= 92%。请使用计算器精确计算各路线的单票成本、网点整体 FADR，并针对 B 线与 C 线提出改进方案！",
           case_study_board: {
             context: "Bưu cục Quận 7 (Hub Q7-LM) | Báo cáo ngày 11/11 | Mục tiêu: Cost/Drop <= 11,500đ & FADR >= 92%",
             unit_hint: "Công thức: Cost per Successful Drop = Tổng chi phí tuyến ÷ Số đơn giao thành công",
@@ -435,6 +534,20 @@ window.LOGISTICS_DATA = {
               "Linehaul feeder trucks arrive at District 7 Hub in two waves: Wave 1 at 06:30 and Wave 2 at 13:30."
             ]
           },
+          case_study_board_zh: {
+            context: "第 7 郡网点 (Hub Q7-LM) | 11/11 大促报表 | 目标: 单票成本 <= 11,500 越南盾 & FADR >= 92%",
+            unit_hint: "计算公式：Cost per Successful Drop = 路线总成本 ÷ 成功妥投单量",
+            table_headers: ["派送路线", "分派总单量", "成功妥投", "异常退回 (NDR)", "路线总成本", "主要失败原因"],
+            table_rows: [
+              ["A 线 (高层公寓区)", "160 单", "148 单", "12 单 (7.5%)", "1,628,000 越南盾", "工作时间收件人不在家"],
+              ["B 线 (写字楼商务区)", "150 单", "114 单", "36 单 (24.0%)", "1,710,000 越南盾", "18:00 后派送导致办公楼已下班"],
+              ["C 线 (深巷住宅区)", "120 单", "96 单", "24 单 (20.0%)", "1,536,000 越南盾", "高额 COD (>200万) 订单电话无人接听"]
+            ],
+            notes: [
+              "每笔 NDR 失败件均需带回网点扫描入库并在次日重新分拣派送，导致分拣成本翻倍。",
+              "干线接驳车每日分两波抵达第 7 郡网点：第 1 波 06:30，第 2 波 13:30。"
+            ]
+          },
           expected_keywords: ["Cost per Drop", "FADR", "NDR", "Dynamic Routing", "COD Pre-confirmation", "Smart Locker"],
           keyword_hints_vi: [
             "Kết quả bấm máy: Tuyến A = 1,628,000 ÷ 148 = 11,000đ (Đạt); Tuyến B = 1,710,000 ÷ 114 = 15,000đ (Vượt +30.4%!); Tuyến C = 1,536,000 ÷ 96 = 16,000đ (Vượt +39.1%!)",
@@ -446,10 +559,16 @@ window.LOGISTICS_DATA = {
             "Overall Hub FADR = (148 + 114 + 96) ÷ 430 = 358 ÷ 430 = 83.26% (below 92% target)",
             "Route B: Priority sort Wave 2 at 13:30 & Dynamic Routing to finish offices before 17:00; Route C: Automated pre-call confirmation before dispatching high-value COD"
           ],
-          followup_rule_regex: "(15,?000|16,?000|11,?000|83\\.?2|83\\.?3|358)",
+          keyword_hints_zh: [
+            "计算单票成本：A 线 = 11,000 盾 (达标)；B 线 = 1,710,000 ÷ 114 = 15,000 盾 (超标 +30.4%!)；C 线 = 1,536,000 ÷ 96 = 16,000 盾 (超标 +39.1%!)",
+            "网点整体 FADR = (148 + 114 + 96) ÷ 430 = 358 ÷ 430 = 83.26%（低于 92% 目标）",
+            "B 线：第 2 波 13:30 优先分拣并动态调整路线在 17:00 前完成写字楼派送；C 线：高额 COD 出库前通过自动外呼/消息确认收货时间"
+          ],
+          followup_rule_regex: "(15,?000|16,?000|11,?000|83\\.?2|83\\.?3|358|15000|16000|83\\.26)",
           followup_probe_vi: "Bạn hãy dùng máy tính mini chốt con số cụ thể nhé: Cost per Successful Drop của Tuyến B và Tuyến C chính xác là bao nhiêu đồng/đơn, FADR toàn bưu cục đang đạt bao nhiêu %, và ở Wave 2 lúc 13:30 chiều bạn tổ chức chia hàng cho Tuyến B thế nào để kịp trước 17:30?",
           spoken_probe_vi: "Bạn hãy dùng máy tính chốt con số cụ thể nhé. Chi phí trên mỗi đơn giao thành công của Tuyến B và Tuyến C chính xác là bao nhiêu đồng, tỷ lệ giao thành công toàn bưu cục đang đạt bao nhiêu phần trăm, và ở chuyến xe chiều lúc mười ba giờ ba mươi bạn tổ chức chia chọn hàng cho Tuyến B thế nào để giao kịp giờ hành chính?",
           followup_probe_en: "Please check the exact numbers on the calculator: what is the exact Cost per Successful Drop for Route B and Route C, what is the overall Hub First-Attempt Delivery Rate percentage, and how will you prioritize Wave 2 sorting at 1:30 PM for Route B?",
+          followup_probe_zh: "请用计算器核对以下具体数据：B 线和 C 线的单票成功配送成本（Cost per Drop）准确是多少？整个网点的首次妥投率（FADR）是多少？另外在下午 13:30 的第 2 波到货分拣中，您如何优先保障 B 线赶在 17:30 下班前派完？",
           ideal_answer: "Bước 1 (Chẩn đoán bằng con số định lượng): Tổng FADR toàn bưu cục mới đạt 358/430 = 83.26% (hụt 8.74% so với mục tiêu 92%). Xét Cost per Successful Drop: Tuyến A đạt 1,628,000 ÷ 148 = 11,000đ/đơn (Đạt); nhưng Tuyến B vọt lên 1,710,000 ÷ 114 = 15,000đ/đơn (+30.4%) và Tuyến C đội lên 1,536,000 ÷ 96 = 16,000đ/đơn (+39.1%). Bước 2 (Giải pháp Tuyến B - Văn phòng): Gắn cờ địa chỉ Office trên hệ thống chia chọn để ưu tiên đổ bao đầu tiên ở cả Wave 1 và Wave 2 (13:30), kết hợp Dynamic Routing bắt buộc Shipper giao hết cụm tòa nhà văn phòng trước 17:00 rồi mới giao nhà dân buổi tối. Bước 3 (Giải pháp Tuyến C & Tuyến A): Kích hoạt Zalo ZNS/Callbot xác nhận hẹn giờ trước với các đơn COD > 2 triệu ở Tuyến C (chỉ xuất giao khi khách xác nhận nhận hàng), đồng thời tận dụng tủ Smart Locker/Lễ tân cho chung cư Tuyến A, đưa FADR toàn Hub vượt 93% và kéo Cost per Drop trung bình về dưới 11,300đ."
         },
         {
@@ -460,9 +579,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Hoạch định công suất (Capacity Planning) bưu cục mùa Mega Sale tăng 3.5 lần",
           title_en: "Last-Mile Hub Capacity Planning for 3.5x Mega Sale Volume Spikes",
+          title_zh: "大促期间 3.5 倍单量暴增下的末端网点运力规划 (Capacity Planning)",
           question_text: "Sản lượng đơn hàng ngày Sale đôi (11/11, 12/12) tăng gấp 3.5 lần ngày thường. Làm sao bạn giải bài toán nhân sự giao hàng để ngày Sale không tồn đọng bưu cục mà ngày thường không bị lãng phí lương cố định?",
           spoken_vi: "Sản lượng đơn hàng vào các ngày hội mua sắm mười một tháng mười một và mười hai tháng mười hai tăng gấp ba phẩy năm lần ngày thường. Làm sao bạn giải bài toán nhân sự giao hàng để ngày cao điểm không bị ứ đọng bưu cục mà ngày thường không bị lãng phí quỹ lương cố định?",
           question_text_en: "Double-day mega sale parcel volume spikes 3.5 times above normal days. How do you design last-mile capacity planning to prevent hub backlog on peak days without inflating fixed payroll on normal days?",
+          question_text_zh: "双十一、双十二大促期间单量暴增至平日的 3.5 倍。您如何设计末端配送人力与运力规划，做到大促不爆仓积压、平日不浪费固定薪资成本？",
           expected_keywords: ["Capacity Planning", "Crowdsourcing / Part-time", "3PL Overflow", "PUDO / Smart Locker", "Tiered Incentive"],
           keyword_hints_vi: [
             "Mô hình nhân sự 3 lớp: Đội Core Full-time (110% nền) + Cộng tác viên Part-time giao đơn trả trước tại chung cư + Đối tác 3PL xả tràn (Overflow)",
@@ -472,9 +593,14 @@ window.LOGISTICS_DATA = {
             "Three-tier fleet model: Core full-time couriers (110% baseline) + Part-time crowdsourced riders for prepaid apartment clusters + On-demand 3PL overflow API",
             "Tiered volume incentives during the 48-hour peak window"
           ],
+          keyword_hints_zh: [
+            "三层运力弹性架构：核心全职骑手（覆盖 110% 日常基线）+ 兼职众包骑手（专攻已付款公寓区）+ 第三方同城即配溢出接口（3PL Overflow）",
+            "在 48 小时大促高峰窗口期实施阶梯式妥投计件奖励"
+          ],
           followup_probe_vi: "Khi thuê cộng tác viên thời vụ bên ngoài chạy ngày Sale, làm thế nào bạn ngăn ngừa rủi ro làm mất hàng hoặc thu tiền COD không nộp?",
           spoken_probe_vi: "Khi thuê cộng tác viên thời vụ bên ngoài chạy tăng cường ngày cao điểm, làm thế nào bạn ngăn ngừa rủi ro làm mất hàng hoặc thu tiền mặt của khách mà không nộp về bưu cục?",
           followup_probe_en: "When onboarding temporary crowdsourced couriers during peak days, how do you prevent parcel loss and cash-on-delivery theft risks?",
+          followup_probe_zh: "在大促期间招募外部兼职众包骑手时，您如何有效防范丢件风险以及代收 COD 货款未上缴的资金安全漏洞？",
           ideal_answer: "(S) Sản lượng đỉnh ngày Sale gấp 3.5 lần ngày thường gây quá tải cục bộ. (T) Đảm bảo SLA giao đúng hạn >= 95% với chi phí biến đổi tối ưu. (A) Tôi thiết kế cấu trúc 3 tầng công suất: Tầng 1 (Core Riders chính thức) chuyên giao tuyến khó và đơn COD tiền mặt; Tầng 2 (Cộng tác viên Part-time) chỉ phân bổ các đơn đã thanh toán trước (Non-COD) gom theo cụm chung cư mật độ cao kèm ký quỹ/eKYC trên App; Tầng 3 kích hoạt API đẩy tràn tự động sang đối tác giao tức thời khi tồn Hub vượt 130%. (R) Giải phóng sạch đỉnh 350% sản lượng trong 48 giờ và tiết kiệm 19% chi phí nhân sự toàn quý."
         }
       ]
@@ -487,8 +613,10 @@ window.LOGISTICS_DATA = {
       name: "Xuất nhập khẩu & Hải quan (Customs)",
       spokenNameVi: "Xuất nhập khẩu và Hải quan",
       nameEn: "Import-Export & Customs Clearance",
+      nameZh: "进出口与报关清关 (Customs)",
       shortTitle: "XNK & Hải quan",
       shortTitleEn: "Customs & Trade",
+      shortTitleZh: "进出口与报关",
       lucideIcon: "ship",
       pastelBg: "#F0F9FF",
       pastelBorder: "#BAE6FD",
@@ -507,9 +635,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Tư vấn chuyển đổi Incoterms 2020 (CIF sang FOB/FCA) để cắt phí Local Charges",
           title_en: "Switching Incoterms 2020 from CIF to FOB/FCA to Cut Destination Local Charges",
+          title_zh: "推动 Incoterms 2020 从 CIF 转为 FOB/FCA 以削减目的港本地费用",
           question_text: "Nhiều doanh nghiệp nhập khẩu mua hàng theo điều kiện CIF vì thấy nhàn, nhưng khi hàng cập cảng Cát Lái lại bị đại lý hãng tàu thu phí Local Charges (CIC, THC, vệ sinh cont) rất đắt. Bạn phân tích điểm chuyển giao rủi ro và thuyết phục sếp chuyển sang mua FOB/FCA như thế nào?",
           spoken_vi: "Nhiều doanh nghiệp nhập khẩu thường mua hàng theo điều kiện giao hàng bao gồm tiền hàng, bảo hiểm và cước tàu vì thấy nhàn, nhưng khi hàng cập cảng Cát Lái lại bị đại lý hãng tàu thu phụ phí tại cảng đích rất đắt. Bạn phân tích điểm chuyển giao rủi ro theo quy tắc thương mại quốc tế năm hai nghìn không trăm hai mươi và thuyết phục ban giám đốc chuyển sang tự thuê tàu như thế nào?",
           question_text_en: "Many importers buy on CIF terms for convenience, yet face inflated destination local charges when cargo arrives at Cat Lai Port. How would you explain the exact risk transfer point under Incoterms 2020 and persuade management to switch to FOB or FCA?",
+          question_text_zh: "许多进口企业图省事按 CIF 条款采购，但货物抵达卡莱港时常被船公司代理收取高昂的目的港本地附加费（CIC、THC、洗箱费等）。您会如何剖析 Incoterms 2020 的风险转移节点，并说服管理层改用 FOB 或 FCA 条款？",
           expected_keywords: ["Incoterms 2020", "FOB", "FCA", "CIF", "Local Charges", "Nomination"],
           keyword_hints_vi: [
             "Dù mua CIF hay FOB thì rủi ro hư hỏng hàng hóa đều chuyển sang người mua ngay từ khi hàng xếp lên tàu tại cảng đi!",
@@ -519,9 +649,14 @@ window.LOGISTICS_DATA = {
             "Under both CIF and FOB, cargo damage risk transfers to the buyer at the port of loading once placed on board!",
             "Switching to FOB/FCA gives the importer forwarder nomination control, locking in all-in ocean freight and transparent destination local charges"
           ],
+          keyword_hints_zh: [
+            "无论是 CIF 还是 FOB，货物灭失损坏的风险都是在装运港货物装上船时就转移给买方了！",
+            "转为 FOB/FCA 可让进口商掌握指定货代权（Nomination），提前锁定海运费与透明的越南目的港 Local Charges 包干价"
+          ],
           followup_probe_vi: "Với hàng đóng nguyên container (FCL) giao cho hãng tàu tại bãi CY trước ngày tàu chạy, vì sao Incoterms 2020 khuyến khích dùng điều kiện FCA thay vì FOB?",
           spoken_probe_vi: "Đối với hàng đóng nguyên công ten nơ giao cho hãng tàu tại bãi cảng vài ngày trước khi tàu chạy, vì sao quy tắc thương mại quốc tế khuyến khích dùng điều kiện giao cho người chuyên chở tại bãi thay vì điều kiện giao lên boong tàu?",
           followup_probe_en: "For containerized full-container-load cargo handed over at the container yard days before vessel loading, why does Incoterms 2020 recommend FCA over FOB?",
+          followup_probe_zh: "对于在船期前几天就交到港口集装箱堆场（CY）的整箱货物（FCL），为什么 Incoterms 2020 推荐使用 FCA 而不是 FOB？",
           ideal_answer: "(S) Công ty nhập 15 cont nguyên liệu/tháng theo giá CIF Cát Lái và liên tục bị Forwarder đầu bán thu phí CIC, D/O cao gấp 3 lần định mức thị trường. (T) Giảm tổng giá vốn nhập khẩu (Landed Cost) và chủ động lịch tàu. (A) Tôi lập bảng phân tích TCO chứng minh: theo Incoterms 2020, điểm chuyển giao rủi ro của CIF và FOB đều nằm tại boong tàu cảng xếp (với hàng FCL hạ bãi CY càng nên dùng FCA để tránh khoảng trống rủi ro tại bãi). Tôi đàm phán với nhà cung cấp tách giá về FOB/FCA và tổ chức chào giá cạnh tranh với 3 Forwarder nội địa kèm cam kết trần Local Charges và 14 ngày Free DEM/DET. (R) Tiết kiệm $280/container ($4,200/tháng) và chấm dứt hoàn toàn chi phí ẩn tại cảng đích."
         },
         {
@@ -532,9 +667,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Xử lý sai lệch C/O Form E tại Cảng Cát Lái & Bài toán Đánh đổi Thuế vs Phí lưu bãi DEM",
           title_en: "Resolving C/O Form E Discrepancies at Cat Lai Port & Duty vs. Demurrage Trade-off",
+          title_zh: "处理卡莱港 C/O Form E 单证差异及关税与滞箱费 (DEM) 权衡",
           question_text: "Lô hàng 02x40'HC linh kiện van công nghiệp trị giá $85,000 từ Thượng Hải đã nằm tại Cảng Cát Lái sang ngày thứ 7 (Free time chỉ có 5 ngày). Khi đối chiếu bộ chứng từ ở bảng bên phải trước khi truyền tờ khai VNACCS, bạn phát hiện sai lệch nghiêm trọng. Hãy dùng máy tính tính tiền thuế ưu đãi và phí DEM phát sinh, từ đó đề xuất phương án thông quan tối ưu nhất!",
           spoken_vi: "Lô hàng hai công ten nơ bốn mươi phít cao chở linh kiện van công nghiệp trị giá tám mươi lăm nghìn đô la Mỹ từ Thượng Hải đã nằm tại Cảng Cát Lái sang ngày thứ bảy, trong khi thời gian miễn phí lưu bãi chỉ có năm ngày. Khi đối chiếu bộ chứng từ ở bảng bên phải trước khi truyền tờ khai hải quan điện tử, bạn phát hiện sai lệch nghiêm trọng. Hãy dùng máy tính tính tiền thuế ưu đãi và phí lưu bãi phát sinh, từ đó đề xuất phương án thông quan tối ưu nhất!",
           question_text_en: "A shipment of two 40-foot High Cube containers worth 85,000 US dollars from Shanghai is on Day 7 at Cat Lai Port, with only 5 days of free demurrage. Reviewing the documents in the right-hand table before customs filing reveals serious discrepancies. Use the calculator to compute the duty impact versus demurrage charges and recommend the optimal clearance plan!",
+          question_text_zh: "一批从上海发运、CIF 货值 85,000 美元的 2x40'HC 工业阀门配件已在卡莱港滞留第 7 天（免费堆存期仅 5 天）。在通过 VNACCS 报关前核对右侧单证表时，您发现了严重不符点。请使用计算器核算优惠关税与产生的滞期费（DEM），并提出最优清关方案！",
           case_study_board: {
             context: "Lô hàng 02x40'HC tại Cảng Cát Lái | Trị giá CIF: $85,000 | Đang lưu bãi ngày thứ 7 (Free DEM: 5 ngày)",
             unit_hint: "Tính: Thuế ưu đãi ($85,000 × 10%) vs Phí DEM 2 cont nếu nằm chờ sửa C/O thêm 5 ngày (tổng 12 ngày)",
@@ -563,6 +700,20 @@ window.LOGISTICS_DATA = {
               "Customs regulations allow declaring 'Pending C/O Submission' (paying 10% MFN duty upfront to release cargo early, then submitting corrected C/O within 30 days for a full refund)."
             ]
           },
+          case_study_board_zh: {
+            context: "卡莱港 02x40'HC 货物 | CIF 货值: $85,000 | 当前在港第 7 天 (免 DEM 期: 5 天)",
+            unit_hint: "提示：核算关税差额 ($85,000 × 10%) 对比 2 个柜等待重开 C/O 多停 5 天（共 12 天）的 DEM 费用",
+            table_headers: ["核对项目", "发票与装箱单", "海运提单 (B/L)", "C/O Form E 原件", "税率与海关影响"],
+            table_rows: [
+              ["HS 编码", "8481.80.99", "8481.80 (6位)", "8481.90.00 (子目不符!)", "最惠国税率: 10% | 有效 Form E: 0%"],
+              ["毛重 (Gross Weight)", "36,400 KGS", "38,200 KGS (多出 +1,800 kg)", "36,400 KGS", "红灯查验过磅风险"],
+              ["滞箱/堆存费 (DEM)", "02 x 40'HC", "已超免费期 2 天", "重开 C/O 需额外 5 天", "第 6–10 天: $45/柜/天 | 第 11 天起: $75/柜/天"]
+            ],
+            notes: [
+              "发货人确认实际装箱毛重为 36,400 KGS（船公司在提单及电子舱单 e-Manifest 上误录为 38,200 KGS）。",
+              "越南海关法规允许在 VNACCS 申报“欠交 C/O”（先按 MFN 10% 暂缴税款提柜，随后在 30 天内补交正确 C/O 申请全额退税）。"
+            ]
+          },
           expected_keywords: ["C/O Form E", "HS Code", "Manifest", "DEM/DET", "Nợ C/O", "VNACCS/VCIS"],
           keyword_hints_vi: [
             "Tiền thuế chênh lệch nếu mất ưu đãi Form E: $85,000 × 10% = $8,500 (~215 triệu đồng)",
@@ -574,10 +725,16 @@ window.LOGISTICS_DATA = {
             "Leaving 2 containers at port for 5 more days (12 days total = 5 free + 5×$45 + 2×$75): Total DEM = 2 × ($225 + $150) = $750!",
             "Optimal plan: 1) Amend B/L & e-Manifest weight to 36,400 KGS within 24h BEFORE filing declaration; 2) File customs on Day 8 with Pending C/O (paying only 3 days DEM = $270, saving $480) and submit re-issued Form E within 30 days to refund the $8,500 duty!"
           ],
-          followup_rule_regex: "(8,?500|750|270|nợ\\s*c/?o|pending\\s*c/?o|30\\s*ngày|30\\s*day|hoàn thuế|refund|tu chỉnh|amend|manifest)",
+          keyword_hints_zh: [
+            "Form E 优惠关税差额：$85,000 × 10% = $8,500",
+            "若让 2 个柜在港口多等 5 天重开 C/O（共计 12 天 = 5天免费 + 5天×$45 + 2天×$75）：总 DEM 滞期费 = 2 × ($225 + $150) = $750！",
+            "最优策略：1) 报关前 24 小时内先完成提单 B/L 与电子舱单 e-Manifest 毛重更正为 36,400 KGS；2) 第 8 天申报“欠交 C/O”先提柜回厂（仅支付 3 天 DEM = $270，省下 $480），并在 30 天内补交新 C/O Form E 退回 $8,500 关税！"
+          ],
+          followup_rule_regex: "(8,?500|750|270|nợ\\s*c/?o|pending\\s*c/?o|30\\s*ngày|30\\s*day|hoàn thuế|refund|tu chỉnh|amend|manifest|欠交|退税|更正|舱单)",
           followup_probe_vi: "Nếu bạn để 2 cont 40'HC nằm chờ tại Cát Lái thêm 5 ngày nữa (thành 12 ngày lưu bãi) để đợi C/O mới gửi sang thì tổng phí DEM bậc thang mất bao nhiêu USD? Làm cách nào vừa kéo hàng về kho sớm để cắt phí DEM, vừa bảo toàn được $8,500 tiền thuế ưu đãi Form E?",
           spoken_probe_vi: "Nếu bạn để hai công ten nơ nằm chờ tại Cát Lái thêm năm ngày nữa thành mười hai ngày lưu bãi để đợi giấy chứng nhận xuất xứ mới gửi sang thì tổng phí lưu bãi bậc thang mất bao nhiêu đô la Mỹ? Làm cách nào vừa kéo hàng về kho sớm để cắt phí lưu bãi, vừa bảo toàn được tám nghìn năm trăm đô la tiền thuế ưu đãi?",
           followup_probe_en: "If you leave both 40-foot containers at Cat Lai for five more days—making 12 days total—waiting for the re-issued Certificate of Origin, how much tiered demurrage will you pay in US dollars? How can you clear cargo early to stop demurrage while still recovering the 8,500-dollar preferential duty?",
+          followup_probe_zh: "如果让这两个 40 尺高柜继续在卡莱港滞留 5 天（累计 12 天）等待重寄新的 C/O，阶梯式 DEM 滞期费总共会产生多少美元？您有什么办法既能尽早提柜止损 DEM，又能保住 8,500 美元的 Form E 关税优惠？",
           ideal_answer: "Bước 1 (Tính toán Thuế & Phí lưu bãi DEM): Tiền thuế ưu đãi C/O Form E của lô hàng là $85,000 × 10% = $8,500. Nếu để 2 cont nằm cảng chờ cấp lại C/O thêm 5 ngày (tổng 12 ngày: 5 ngày miễn phí + 5 ngày mức $45 + 2 ngày mức $75), phí DEM hãng tàu lên tới 2 × (225 + 150) = $750 (chưa tính lưu bãi cảng và trễ tiến độ nhà máy). Bước 2 (Tu chỉnh Manifest trước khi mở tờ khai): Chưa truyền tờ khai ngay khi B/L lệch +1,800 kg; lập tức yêu cầu Shipper và Đại lý tàu tu chỉnh B/L & sửa e-Manifest trên Cổng thông tin một cửa quốc gia về đúng 36,400 KGS trong 24 giờ. Bước 3 (Khai Nợ C/O kéo hàng sớm): Ngay ngày thứ 8 sau khi khớp Manifest, truyền tờ khai VNACCS đăng ký Nợ C/O Form E (tạm nộp thuế MFN $8,500) để giải phóng 2 cont về kho (chỉ chịu 3 ngày DEM = 2 × 3 × $45 = $270, tiết kiệm ngay $480 DEM). Đồng thời đôn đốc Shipper xin cấp lại C/O Form E đúng phân nhóm 8481.80, nộp bổ sung tờ khai AMA trong 30 ngày để hoàn lại trọn vẹn $8,500 tiền thuế."
         },
         {
@@ -588,9 +745,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Phòng vệ rủi ro Kiểm tra sau thông quan (PCA) & Xác định trước mã số HS Code",
           title_en: "Mitigating Post-Clearance Audit Risk via Advance HS Tariff Rulings",
+          title_zh: "通过海关预归类裁定 (Advance Ruling) 防范稽查追税风险 (PCA)",
           question_text: "Khi công ty chuẩn bị nhập khẩu một dây chuyền máy móc đồng bộ lần đầu tiên về Việt Nam có nguy cơ tranh cãi mã HS Code (thuế 0% so với 15%), bạn triển khai bước pháp lý nào trước khi hàng xuống tàu để tránh rủi ro bị truy thu thuế sau 3–5 năm?",
           spoken_vi: "Khi công ty chuẩn bị nhập khẩu một dây chuyền máy móc đồng bộ lần đầu tiên về Việt Nam có nguy cơ tranh cãi về mã số phân loại hàng hóa với mức thuế không phần trăm so với mười lăm phần trăm, bạn triển khai bước pháp lý nào trước khi hàng xuống tàu để tránh rủi ro bị kiểm tra sau thông quan và truy thu thuế sau ba đến năm năm?",
           question_text_en: "When importing a complex machinery line for the first time with disputed HS tariff classification—zero percent versus 15 percent duty—what legal step do you take prior to shipment to prevent Post-Clearance Audit tax clawbacks years later?",
+          question_text_zh: "当公司首次向越南进口一套成套机械生产线，且在 HS 编码归类上存在 0% 与 15% 税率的争议风险时，您会在货物装船前采取哪项合规法律步骤，以避免 3 至 5 年后被海关稽查（PCA）追缴税款？",
           expected_keywords: ["Xác định trước mã số", "Advance Ruling", "6 Quy tắc GRI", "Catalogue kỹ thuật", "Kiểm tra sau thông quan"],
           keyword_hints_vi: [
             "Nộp hồ sơ xin 'Xác định trước mã số' (Advance Ruling) lên Tổng cục Hải quan tối thiểu 60 ngày trước khi nhập khẩu",
@@ -600,9 +759,14 @@ window.LOGISTICS_DATA = {
             "Submit an official 'Advance Tariff Ruling' application to Customs HQ at least 60 days prior to shipment",
             "Substantiate classification with technical drawings, OEM catalogues, and the 6 General Rules of Interpretation (GRI 1–6)"
           ],
+          keyword_hints_zh: [
+            "至少在进口前 60 天向越南海关总署提交正式的“商品预归类裁定”（Advance Ruling）申请",
+            "结合原厂技术手册（Catalogue）、工程图纸以及《商品归类六项总规则》（GRI 1–6）论证技术属性"
+          ],
           followup_probe_vi: "Văn bản thông báo kết quả Xác định trước mã số của Tổng cục Hải quan có giá trị hiệu lực tối đa bao nhiêu năm?",
           spoken_probe_vi: "Văn bản thông báo kết quả xác định trước mã số hàng hóa của Tổng cục Hải quan có giá trị hiệu lực pháp lý tối đa bao nhiêu năm?",
           followup_probe_en: "For how many years does an official Advance Tariff Ruling notification from Customs remain legally valid?",
+          followup_probe_zh: "越南海关总署出具的《商品预归类裁定通知书》法定有效期最长为多少年？",
           ideal_answer: "(S) Áp sai mã HS cho dây chuyền trị giá lớn dễ dẫn đến truy thu thuế và phạt chậm nộp 0.03%/ngày trong đợt Kiểm tra sau thông quan (PCA). (T) Khóa chặt cơ sở pháp lý mã HS trước khi hàng cập cảng. (A) Tối thiểu 60 ngày trước khi xuất hàng, tôi tổng hợp Catalogue, bản vẽ kỹ thuật và sơ đồ nguyên lý hoạt động, đối chiếu 6 quy tắc GRI, rồi nộp bộ hồ sơ xin 'Xác định trước mã số' (Advance Ruling) lên Cục Thuế XNK – Tổng cục Hải quan. Văn bản kết quả có hiệu lực pháp lý tối đa 3 năm trên toàn quốc. (R) 100% lô thiết bị thông quan nhanh chóng đúng dự toán thuế và an toàn tuyệt đối qua các kỳ thanh tra PCA."
         }
       ]
@@ -615,8 +779,10 @@ window.LOGISTICS_DATA = {
       name: "Chuỗi cung ứng (Supply Chain)",
       spokenNameVi: "Hoạch định Chuỗi cung ứng",
       nameEn: "Supply Chain & Inventory Planning",
+      nameZh: "供应链与库存计划 (Supply Chain)",
       shortTitle: "Chuỗi cung ứng",
       shortTitleEn: "Supply Chain",
+      shortTitleZh: "供应链管理",
       lucideIcon: "git-fork",
       pastelBg: "#F5F3FF",
       pastelBorder: "#DDD6FE",
@@ -635,9 +801,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Kiểm soát Hiệu ứng Roi da (Bullwhip Effect) qua chu trình S&OP",
           title_en: "Mitigating the Bullwhip Effect through Monthly S&OP Governance",
+          title_zh: "通过月度产销协同 (S&OP) 机制抑制牛鞭效应 (Bullwhip Effect)",
           question_text: "Trong chuỗi cung ứng FMCG, một đợt chiết khấu ngắn hạn của phòng Sales thường làm đơn đặt hàng biến động phóng đại gấp nhiều lần lên tận nhà máy sản xuất. Bạn giải thích hiện tượng này và dùng quy trình S&OP để hóa giải như thế nào?",
           spoken_vi: "Trong chuỗi cung ứng hàng tiêu dùng nhanh, một đợt chiết khấu ngắn hạn của phòng kinh doanh thường làm đơn đặt hàng biến động phóng đại gấp nhiều lần lên tận nhà máy sản xuất. Bạn giải thích hiện tượng hiệu ứng roi da này và dùng quy trình phối hợp kế hoạch bán hàng và vận hành để hóa giải như thế nào?",
           question_text_en: "In an FMCG supply chain, a short-term sales trade promotion often triggers massive order amplification upstream at the manufacturing plant. How do you explain this phenomenon and mitigate it through Sales and Operations Planning?",
+          question_text_zh: "在快消品供应链中，销售部门的一次短期促销折扣往往会导致上游生产工厂的订单量出现成倍放大波动。您如何解释这种现象，并运用 S&OP（销售与运营计划）流程来化解？",
           expected_keywords: ["Bullwhip Effect", "S&OP", "Sell-out / POS Data", "MAPE", "Forecast Bias"],
           keyword_hints_vi: [
             "Hiện tượng Hiệu ứng Roi da (Bullwhip Effect) do đại lý ôm hàng đầu cơ (Forward Buying / Sell-in ảo)",
@@ -647,9 +815,14 @@ window.LOGISTICS_DATA = {
             "Identify the Bullwhip Effect caused by distributor forward-buying (artificial Sell-in spike followed by order slump)",
             "Lock trade promotion calendars 6 weeks ahead in monthly S&OP and anchor forecasts on end-consumer Sell-out / POS data"
           ],
+          keyword_hints_zh: [
+            "识别牛鞭效应（Bullwhip Effect）：经销商趁促销提前囤货（虚假 Sell-in 激增，随后订单断崖式下跌）",
+            "在月度 S&OP 会议上提前 6 周锁定促销日历，并以终端实际动销数据（Sell-out / POS）为预测基准"
+          ],
           followup_probe_vi: "Chỉ số KPI nào bạn dùng hàng tháng để đo lường độ lệch dự báo (Forecast Error) giữa số Sales cam kết và sản lượng thực tế?",
           spoken_probe_vi: "Chỉ số đánh giá nào bạn dùng hàng tháng để đo lường sai số dự báo và độ chệch xu hướng giữa con số phòng kinh doanh cam kết so với sản lượng tiêu thụ thực tế?",
           followup_probe_en: "Which monthly metrics do you use to measure forecast accuracy error and systematic bias between sales commitments and actual demand?",
+          followup_probe_zh: "您每月使用哪些核心 KPI 指标来衡量销售承诺预测与实际出货需求之间的预测误差（Forecast Error）和系统性偏差？",
           ideal_answer: "(S) Đây là Hiệu ứng Roi da (Bullwhip Effect): khi Sales tung chiết khấu đột ngột, nhà phân phối ôm hàng (Sell-in tăng vọt giả tạo) làm nhà máy chạy tăng ca mua dư nguyên liệu, sau đó tháng kế tiếp đơn hàng tụt dốc gây ứ đọng tồn kho. (T) Giảm sai số dự báo MAPE xuống dưới 18%. (A) Tôi thiết lập lịch họp S&OP định kỳ hàng tháng giữa Sales – Marketing – Supply – Factory, bắt buộc khóa kế hoạch Trade Promotion trước 6 tuần, bóc tách sản lượng nền (Baseline) khỏi sản lượng khuyến mãi (Uplift), đồng thời kết nối dữ liệu tồn kho nhà phân phối và Sell-out để đo WAPE/MAPE và Forecast Bias. (R) Kéo giảm MAPE từ 31% xuống 16.5% và cắt giảm 22% tồn kho chậm luân chuyển (SLOB)."
         },
         {
@@ -660,9 +833,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Tính Safety Stock, Điểm đặt hàng lại (ROP) & Giải cứu nguy cơ đứt chuyền bao bì",
           title_en: "Calculating Safety Stock, Reorder Point & Emergency Bridging Supply",
+          title_zh: "核算安全库存 (Safety Stock)、再订货点 (ROP) 及包材断线紧急救援方案",
           question_text: "Là Chuyên viên Hoạch định Vật tư (Material Planner) tại nhà máy Bình Dương, sáng nay bạn nhận được cảnh báo tắc cửa khẩu biên giới khiến Lead Time mã màng nhôm PKG-20 kéo dài lên 11 ngày, trong khi sức tiêu thụ của xưởng đang tăng vọt. Dựa vào bảng bên phải và máy tính mini, hãy tính: (1) Số ngày tồn kho còn đủ dùng (Days of Supply), (2) Mức Safety Stock & ROP chuẩn, và (3) Phương án mua bù khẩn cấp tối ưu chi phí nhất để không dừng chuyền!",
           spoken_vi: "Với vai trò chuyên viên hoạch định vật tư tại nhà máy Bình Dương, sáng nay bạn nhận được cảnh báo tắc cửa khẩu biên giới khiến thời gian giao hàng mã màng nhôm kéo dài lên mười một ngày, trong khi mức tiêu thụ của xưởng đang tăng vọt. Dựa vào bảng số liệu bên phải và máy tính, hãy tính: Thứ nhất, số ngày tồn kho hiện tại còn đủ dùng. Thứ hai, mức tồn kho an toàn và điểm đặt hàng lại chuẩn. Và thứ ba, phương án mua bù khẩn cấp có chi phí tối ưu nhất để không bị dừng dây chuyền sản xuất!",
           question_text_en: "As Material Planner at a Binh Duong factory, border congestion just stretched lead time for packaging foil PKG-20 to 11 days while daily factory usage surged. Using the table and calculator, compute: first, current Days of Supply; second, required Safety Stock and Reorder Point; and third, the most cost-effective emergency bridging order to prevent a production line shutdown!",
+          question_text_zh: "作为平阳工厂的物料计划员，今早您收到口岸拥堵预警，导致铝箔包材 PKG-20 的交货提前期（Lead Time）延长至 11 天，而车间日消耗量正在暴增。请结合右侧数据表和计算器核算：(1) 当前库存可用天数（Days of Supply）；(2) 标准安全库存（Safety Stock）与再订货点（ROP）；(3) 为避免停线而采取的成本最优紧急补货方案！",
           case_study_board: {
             context: "Nhà máy FMCG Bình Dương | Mã vật tư: PKG-20 (Màng nhôm ép vỉ) | Tồn khả dụng hiện tại: 11,200 cuộn",
             unit_hint: "Tính: DOS = 11,200 ÷ 1,500 | SS = (1,650 × 11) - (1,200 × 7) | ROP = (1,200 × 7) + SS",
@@ -693,6 +868,21 @@ window.LOGISTICS_DATA = {
               "Objective: Guarantee Zero Line-Stoppage at the lowest incremental procurement cost."
             ]
           },
+          case_study_board_zh: {
+            context: "平阳快消品工厂 | 物料编码: PKG-20 (铝箔包装膜) | 当前可用库存: 11,200 卷",
+            unit_hint: "计算公式：DOS = 11,200 ÷ 1,500 | SS = (1,650 × 11) - (1,200 × 7) | ROP = (1,200 × 7) + SS",
+            table_headers: ["计划参数", "历史平均水平", "本周实际波动", "成本与起订量 (MOQ) 说明"],
+            table_rows: [
+              ["日消耗量 (Daily Usage)", "1,200 卷 / 天", "1,500 卷 / 天 (峰值 Max: 1,650)", "春节订单拉动增长 +25%"],
+              ["补货提前期 (Lead Time)", "7 天 (跨境陆运)", "11 天 (凭祥口岸拥堵)", "产线停工损失: 1.8亿 越南盾 / 天"],
+              ["现有库存与在途库存", "在库库存: 11,200 卷", "在途数量 (In-transit): 0 卷", "主供应商: $4.0/卷 (MOQ: 10,000 卷)"],
+              ["本地备用供应商 (越亚)", "古芝仓库现货", "加急交期: 2 天", "单价: $4.6/卷 (+15%), MOQ: 3,000 卷"]
+            ],
+            notes: [
+              "安全库存采用极值法公式：SS = (最大日耗 1,650 × 最长交期 11) - (平均日耗 1,200 × 平均交期 7)。",
+              "目标：以最低的新增采购成本确保产线零停工（Zero Line-Stoppage）。"
+            ]
+          },
           expected_keywords: ["Days of Supply", "Safety Stock", "ROP", "Dual Sourcing", "Line Stoppage", "9,750"],
           keyword_hints_vi: [
             "1) Days of Supply (DOS) = 11,200 ÷ 1,500 = 7.47 ngày (< 11 ngày Lead Time -> Sẽ đứt chuyền 3.53 ngày ~ thiếu ít nhất 5,300 cuộn!)",
@@ -704,10 +894,16 @@ window.LOGISTICS_DATA = {
             "2) Safety Stock = (1,650 × 11) - (1,200 × 7) = 9,750 rolls; Reorder Point (ROP) = 8,400 + 9,750 = 18,150 rolls",
             "3) Place emergency PO for 6,000 rolls from local vendor Viet A (arrives in 2 days; $3,600 price premium ~91M VND saves 630M VND in line-down losses!), while ordering >= 15,000 rolls from primary supplier"
           ],
-          followup_rule_regex: "(7\\.?4|7\\.?5|9,?750|18,?150|việt á|viet a|nội địa|local|5,?300|6,?000)",
+          keyword_hints_zh: [
+            "1) 库存可用天数 DOS = 11,200 ÷ 1,500 = 7.47 天（< 11 天交期 -> 将出现 3.53 天断供缺口，约缺 5,300 卷！）",
+            "2) 安全库存 Safety Stock = (1,650 × 11) - (1,200 × 7) = 9,750 卷；再订货点 ROP = 8,400 + 9,750 = 18,150 卷",
+            "3) 立即向本地备用供应商越亚紧急下单 6,000 卷（2 天内到货；溢价 $3,600 约 9,100 万越南盾，远低于 3.5 天停线损失的 6.3 亿越南盾！），同时向主供应商下达 >= 15,000 卷的常规订单"
+          ],
+          followup_rule_regex: "(7\\.?4|7\\.?5|9,?750|18,?150|việt á|viet a|nội địa|local|5,?300|6,?000|越亚|本地|9750|18150)",
           followup_probe_vi: "Kiểm tra kỹ bằng máy tính nhé: với 11,200 cuộn và tốc độ chạy 1,500 cuộn/ngày thì kho sẽ hết sạch sau 7.47 ngày — tức là đứt chuyền mất hơn 3.5 ngày trước khi hàng biên giới kịp về ở ngày 11! Cụ thể bạn đặt mua bao nhiêu cuộn từ NCC nội địa Việt Á và con số Safety Stock chuẩn tính ra là bao nhiêu?",
           spoken_probe_vi: "Bạn kiểm tra kỹ bằng máy tính nhé. Với mười một nghìn hai trăm cuộn và tốc độ chạy một nghìn năm trăm cuộn mỗi ngày thì kho sẽ hết sạch sau bảy phẩy bốn mươi bảy ngày, tức là đứt chuyền mất hơn ba ngày rưỡi trước khi hàng biên giới kịp về ở ngày thứ mười một! Cụ thể bạn đặt mua bao nhiêu cuộn từ nhà cung cấp nội địa Việt Á và mức tồn kho an toàn chuẩn tính ra là bao nhiêu?",
           followup_probe_en: "Check the numbers on the calculator: 11,200 rolls at 1,500 rolls per day lasts only 7.47 days—leaving a 3.5-day stock-out gap before the 11-day cross-border shipment arrives! Exactly how many rolls will you order from local backup supplier Viet A, and what is the calculated Safety Stock?",
+          followup_probe_zh: "请用计算器再核实一下：11,200 卷按每天消耗 1,500 卷计算，库存仅能支撑 7.47 天——这意味着在 11 天跨境货物抵达前会有超过 3.5 天的断供缺口！您具体决定向本地供应商越亚紧急采购多少卷？标准安全库存计算出来是多少？",
           ideal_answer: "Bước 1 (Tính chính xác DOS, Safety Stock & ROP): Với sức chạy mới 1,500 cuộn/ngày, tồn kho 11,200 cuộn chỉ trụ được DOS = 11,200 ÷ 1,500 = 7.47 ngày. So với Lead Time tắc biên 11 ngày, nhà máy hụt 3.53 ngày sản xuất (thiếu tối thiểu 3.53 × 1,500 = 5,300 cuộn). Tính chuẩn Safety Stock = (1,650 × 11) - (1,200 × 7) = 18,150 - 8,400 = 9,750 cuộn; từ đó Điểm đặt hàng lại ROP = 8,400 + 9,750 = 18,150 cuộn (tồn 11,200 đang thủng sâu dưới ROP). Bước 2 (Phương án cứu chuyền Dual Sourcing): Phát hành ngay PO khẩn cấp mua 6,000 cuộn từ NCC nội địa Việt Á tại Củ Chi (giao trong 2 ngày, đạt MOQ 3,000). Chi phí chênh giá 15% là $0.6 × 6,000 = $3,600 (~91 triệu đồng) — tiết kiệm hơn gấp 7 lần so với thiệt hại dừng chuyền 3.5 ngày (630 triệu đồng). Bước 3: Đồng thời đặt ngay lô chính >= 15,000 cuộn từ NCC biên giới và cập nhật lại tham số ROP mùa Tết trên hệ thống MRP."
         },
         {
@@ -718,9 +914,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Tối ưu Vòng quay tồn kho bằng Ma trận phân nhóm ABC-XYZ",
           title_en: "Working Capital Optimization via the 9-Box ABC-XYZ Matrix",
+          title_zh: "利用九宫格 ABC-XYZ 矩阵优化库存周转率与流动资金",
           question_text: "CFO yêu cầu giảm 20% giá trị tồn kho để giải phóng vốn lưu động, nhưng Giám đốc Sales lo ngại cắt tồn kho sẽ gây đứt hàng chủ lực. Bạn dùng phương pháp phân tích dữ liệu nào để đạt cả hai mục tiêu?",
           spoken_vi: "Giám đốc tài chính yêu cầu giảm hai mươi phần trăm giá trị tồn kho để giải phóng vốn lưu động, nhưng Giám đốc kinh doanh lại lo ngại cắt giảm tồn kho sẽ gây đứt gãy các mặt hàng chủ lực. Bạn dùng phương pháp phân nhóm dữ liệu nào để đạt được cả hai mục tiêu trên?",
           question_text_en: "The Chief Financial Officer demands a 20 percent inventory reduction to free working capital, while the Sales Director fears stock-outs on top-selling products. Which inventory segmentation framework do you apply to achieve both goals?",
+          question_text_zh: "财务总监（CFO）要求削减 20% 的库存金额以释放流动资金，但销售总监担心削减库存会导致核心爆款断货。您会采用哪种数据分析框架来同时达成这两项看似矛盾的目标？",
           expected_keywords: ["ABC-XYZ Matrix", "Service Level", "SLOB", "Inventory Turnover", "VMI / Consignment"],
           keyword_hints_vi: [
             "Phân tích ma trận 9 ô ABC (giá trị doanh thu) × XYZ (độ biến động nhu cầu)",
@@ -730,9 +928,14 @@ window.LOGISTICS_DATA = {
             "Segment SKUs using the 9-box ABC (revenue contribution) × XYZ (demand variability) matrix",
             "Protect 99% Service Level on AX/AY items, liquidate SLOB (>120 days slow-moving), and shift erratic high-value AZ items to Make-to-Order or VMI/Consignment"
           ],
+          keyword_hints_zh: [
+            "建立 ABC（营收价值贡献）× XYZ（需求波动系数）九宫格分类矩阵",
+            "严保 AX/AY 核心品 99% 的服务水平，强力清理呆滞库存（SLOB），并将高价值且波动大的 AZ 类物料转为按单采购或供应商寄售（VMI / Consignment）"
+          ],
           followup_probe_vi: "Đối với nhóm hàng AZ (giá trị cao nhưng nhu cầu giật cục rất khó đoán), bạn thiết lập chính sách dự trữ khác gì so với nhóm AX?",
           spoken_probe_vi: "Đối với nhóm hàng có giá trị cao nhưng nhu cầu mua lại giật cục rất khó đoán định, bạn thiết lập chính sách dự trữ và đặt hàng khác gì so với nhóm hàng bán đều mỗi ngày?",
           followup_probe_en: "For Class AZ items—high financial value but highly erratic demand—how does your stocking policy differ from steady Class AX items?",
+          followup_probe_zh: "对于 AZ 类物料（单价高但需求极不稳定、难以预测），您制定的备库与补货策略与稳定的 AX 类物料有什么区别？",
           ideal_answer: "(S) Cắt giảm tồn kho cào bằng 20% mọi mã sẽ làm gãy doanh thu nhóm chủ lực. (T) Giảm 20% vốn tồn kho mà vẫn giữ tỷ lệ đáp ứng nhóm A >= 99%. (A) Tôi chạy ma trận 9 ô ABC-XYZ: 1) Giữ vững Buffer cho nhóm AX/AY (sức bán ổn định, đóng góp 80% doanh thu); 2) Cắt giảm sâu nhóm CZ và lập chiến dịch xả kho rổ hàng SLOB (>120 ngày không luân chuyển); 3) Với nhóm AZ (giá trị lớn, nhu cầu thất thường), chuyển sang đặt hàng theo đơn chốt (Make-to-Order) hoặc đàm phán tồn kho ký gửi nhà cung cấp (VMI / Consignment). (R) Giảm 21.5% giá trị tồn kho bình quân (DIO giảm từ 62 xuống 48 ngày) trong khi tỷ lệ Fill Rate nhóm A đạt 99.1%."
         }
       ]
@@ -745,8 +948,10 @@ window.LOGISTICS_DATA = {
       name: "Business Analyst mảng Logistics (Logistics BA)",
       spokenNameVi: "Phân tích Nghiệp vụ hệ thống Logistics",
       nameEn: "Logistics Systems Business Analyst",
+      nameZh: "物流系统业务分析师 (Logistics BA)",
       shortTitle: "Logistics BA",
       shortTitleEn: "Logistics BA",
+      shortTitleZh: "物流系统 BA",
       lucideIcon: "bar-chart-3",
       pastelBg: "#FFF1F2",
       pastelBorder: "#FECDD3",
@@ -765,9 +970,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 120,
           title: "Khảo sát thực địa Gemba Walk & Thiết kế UAT phân hệ PDA nhận hàng",
           title_en: "Warehouse Floor Discovery (Gemba Walk) & Mobile Receiving UAT Design",
+          title_zh: "仓库现场调研 (Gemba Walk) 与 PDA 收货模块 UAT 验收测试设计",
           question_text: "Khi viết tài liệu BRD / User Story cho tính năng quét mã vạch nhận hàng bằng súng PDA tại kho, nhân viên kho thường thao tác khác xa quy trình lý thuyết. Là Logistics BA, bạn khảo sát thực tế và tổ chức kiểm thử UAT thế nào để lúc Go-live không bị tắc nghẽn?",
           spoken_vi: "Khi viết tài liệu đặc tả yêu cầu nghiệp vụ cho tính năng quét mã vạch nhận hàng bằng thiết bị cầm tay tại kho, nhân viên kho thường thao tác khác xa quy trình trên giấy. Với vai trò chuyên viên phân tích nghiệp vụ, bạn khảo sát thực địa tại kho và tổ chức kiểm thử nghiệm thu như thế nào để ngày vận hành chính thức không bị tắc nghẽn?",
           question_text_en: "When writing business requirement documents and user stories for mobile barcode receiving in a warehouse, floor operations often differ sharply from paper SOPs. As a Logistics Business Analyst, how do you conduct on-site discovery and user acceptance testing so Go-live succeeds smoothly?",
+          question_text_zh: "在为仓库 PDA 扫码收货功能编写需求文档（BRD / User Story）时，仓管员的实际操作往往与理论 SOP 存在很大差距。作为物流业务分析师（Logistics BA），您如何开展现场调研并组织 UAT 用户验收测试，以确保系统上线（Go-live）时不发生作业卡顿？",
           expected_keywords: ["Gemba Walk", "As-Is vs To-Be", "Exception Flow", "UAT", "Acceptance Criteria"],
           keyword_hints_vi: [
             "Xuống trực tiếp sàn kho (Gemba Walk / Shadowing) theo dõi ca nhập hàng để bắt hết các ngoại lệ: tem rách, rớt Wi-Fi, hàng giao thiếu/thừa (Partial GRN)",
@@ -777,9 +984,14 @@ window.LOGISTICS_DATA = {
             "Conduct on-floor Gemba Walks shadowing receiving shifts to capture real exceptions: torn barcodes, Wi-Fi dead zones, partial deliveries",
             "Embed Exception Flows into Acceptance Criteria and run hands-on UAT directly with warehouse team leads on physical devices"
           ],
+          keyword_hints_zh: [
+            "深入仓库现场跟班调研（Gemba Walk），捕捉真实异常场景：条码破损、Wi-Fi 信号盲区、分批到货/短缺（Partial GRN）",
+            "将异常分支流程（Exception Flows）写入验收标准（Acceptance Criteria），并邀请一线仓管组长手持真实 PDA 开展实地 UAT 测试"
+          ],
           followup_probe_vi: "Hãy kể 2 kịch bản ngoại lệ (Edge Cases) điển hình tại cửa nhập kho Inbound mà nếu BA bỏ sót thì nhân viên không thể bấm hoàn tất phiếu nhập trên PDA?",
           spoken_probe_vi: "Bạn hãy kể hai tình huống ngoại lệ điển hình tại cửa nhập kho mà nếu chuyên viên phân tích nghiệp vụ bỏ sót khi thiết kế phần mềm, nhân viên kho sẽ bị kẹt không thể bấm hoàn tất phiếu nhập trên máy quét?",
           followup_probe_en: "Name two classic inbound receiving edge cases that, if missed by the Business Analyst, would block warehouse staff from completing goods receipt on their handheld scanners?",
+          followup_probe_zh: "请列举两个典型的入库收货边缘异常场景（Edge Cases）：如果 BA 在需求设计时遗漏了它们，会导致仓管员在 PDA 上无法点击完成入库？",
           ideal_answer: "(S) Dự án triển khai WMS cho kho 12,000m2 ban đầu chỉ mô tả Happy Path nên bản Demo đầu tiên bị vướng ngay tại cửa Inbound. (T) Thiết kế luồng PDA sát thực tế 100% và Go-live an toàn. (A) Tôi thực hiện Gemba Walk đi theo nhân viên Inbound 3 ca liên tiếp, vẽ luồng As-Is vs To-Be và bổ sung 3 Exception Flows cốt lõi vào User Story: 1) Nhập kho từng phần (Partial Receipt) khi xe giao thiếu kiện; 2) Luồng in lại mã vạch nội bộ qua Bluetooth khi tem NCC bị ướt/mờ; 3) Lưu đệm Offline Queue khi đi vào góc khuất sóng Wi-Fi. Ở vòng UAT, tôi soạn 25 Test Cases từ chứng từ thật cho Key Users dưới kho trực tiếp thao tác duyệt. (R) Go-live mượt ngay ngày đầu, rút ngắn 45% thời gian làm phiếu GRN."
         },
         {
@@ -790,9 +1002,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 180,
           title: "Giải cứu sự cố Overselling 420 đơn Flash Sale & Thiết kế lại cơ chế đồng bộ OMS – WMS",
           title_en: "Recovering 420 Oversold Flash-Sale Orders & Redesigning OMS–WMS ATP Sync",
+          title_zh: "处理大促 420 单超卖事故 (Overselling) 及重构 OMS–WMS 实时同步架构",
           question_text: "Đúng 00:15 đêm Mega Sale, hệ thống OMS báo động đỏ: mã nồi chiên AIRFRY-09 bị bán lố (Oversell) do Cron-job 15 phút/lần đẩy trùng 100% tồn kho lên cả Shopee và TikTok Shop. Hãy dùng bảng số liệu và máy tính mini để: (1) Tính số máy thiếu ròng sau khi điều chuyển kho lẻ và số đơn tối đa được phép hủy dưới trần phạt 3% của sàn; (2) Nêu phương án cứu đơn trước 18:00 hôm nay và thiết kế lại luồng đồng bộ tồn kho ATP!",
           spoken_vi: "Đúng không giờ mười lăm phút đêm hội mua sắm, hệ thống quản lý đơn hàng báo động đỏ: mặt hàng nồi chiên không dầu bị bán vượt quá số lượng tồn kho thực tế, do tác vụ đồng bộ mười lăm phút một lần đã đẩy trùng một trăm phần trăm tồn kho lên cả hai sàn thương mại điện tử. Bạn hãy dùng bảng số liệu và máy tính để: Thứ nhất, tính số máy còn thiếu ròng sau khi kéo hàng từ kho cửa hàng lẻ về, và số đơn tối đa được phép hủy dưới mức trần phạt ba phần trăm của sàn. Thứ hai, nêu phương án cứu đơn trước mười tám giờ hôm nay và thiết kế lại cơ chế đồng bộ tồn kho khả dụng theo thời gian thực!",
           question_text_en: "At 12:15 AM during Mega Sale, your Order Management System alerts that air-fryer SKU AIRFRY-09 is oversold because a 15-minute batch job pushed 100 percent of physical stock to both Shopee and TikTok Shop simultaneously. Using the table and calculator: first, compute the net shortage after retail store transfer and the maximum cancellable orders under the 3 percent seller-fault penalty cap; second, propose a same-day order recovery plan plus a redesigned real-time Available-to-Promise sync architecture!",
+          question_text_zh: "大促凌晨 00:15，OMS 订单系统发出红色警报：空气炸锅 AIRFRY-09 出现严重超卖（Oversell），原因是每 15 分钟运行一次的定时任务把 100% 库存同时推送给了 Shopee 和 TikTok Shop。请结合数据表与计算器：(1) 计算从零售门店调拨补货后的净缺口数量，以及在平台 3% 取消率红线内最多允许取消的订单数；(2) 提出今天 18:00 前的保单履约方案，并重新设计实时可承诺库存（ATP）同步架构！",
           case_study_board: {
             context: "Sự cố 00:15 Mega Sale | SKU: AIRFRY-09 | Lỗi hiện tại: Cron-job 15 phút đẩy trùng 100% tồn lên cả 2 sàn",
             unit_hint: "Tính: Thiếu ròng = (820 + 600) - 1,000 - 280 | Trần hủy cho phép (< 3%) = 1,420 × 3%",
@@ -823,6 +1037,21 @@ window.LOGISTICS_DATA = {
               "Central DC also holds 150 units of upgraded model AIRFRY-09 PRO (+65,000 VND higher unit cost) eligible for complimentary customer upgrades."
             ]
           },
+          case_study_board_zh: {
+            context: "00:15 大促超卖事故 | SKU: AIRFRY-09 | 根本原因: 15 分钟定时批处理将 100% 库存重复推送给双平台",
+            unit_hint: "计算提示：净缺口 = (820 + 600) - 1,000 - 280 | 最大允许取消数 (< 3%) = 1,420 × 3%",
+            table_headers: ["系统 / 销售渠道", "00:00 展示库存", "已成交订单 (00:00-00:15)", "实际可用实物库存", "平台履约 SLA 与处罚规则"],
+            table_rows: [
+              ["中心仓 WMS", "1,000 台", "—", "1,000 台可立即打包发货", "—"],
+              ["Shopee Mall 官方店", "1,000 台 (推送100%)", "820 单", "共用中心仓 WMS 库存", "18:00 前揽收；取消率 > 3% 扣分处罚"],
+              ["TikTok Shop 旗舰店", "1,000 台 (推送100%)", "600 单", "共用中心仓 WMS 库存", "20:00 前揽收；取消率 > 3% 禁止大促"],
+              ["线下零售门店仓", "未接线上平台", "—", "280 台 (调拨回中心仓需 6 小时)", "紧急调拨专车运费: 1,200,000 越南盾"]
+            ],
+            notes: [
+              "若卖家原因未履约率（NFR）超过总订单的 3.0%，官方旗舰店将被扣分并取消下月大促秒杀资格。",
+              "中心仓目前另有 150 台升级款 AIRFRY-09 PRO（单位成本高出 65,000 越南盾），可用于与客户协商免费升级发货。"
+            ]
+          },
           expected_keywords: ["ATP", "Buffer Stock", "Webhook / Real-time Sync", "Soft Allocation", "NFR (< 3%)", "140 đơn / 42 đơn"],
           keyword_hints_vi: [
             "1) Tổng đơn = 820 + 600 = 1,420 đơn -> Oversell ban đầu = 420 máy. Kéo 280 máy từ Kho lẻ về còn thiếu ròng: 420 - 280 = 140 đơn!",
@@ -834,10 +1063,16 @@ window.LOGISTICS_DATA = {
             "2) Max cancellations under 3% cap: 1,420 × 3% = 42.6 -> Max 42 orders! Save at least 98–140 orders via complimentary upgrade to AIRFRY-09 PRO (150 units on hand)!",
             "3) BA Architecture: Replace 15-min batch cron with Event-driven Webhooks + sub-second Soft Allocation + Channel Ratio split with 5% Safety Buffer"
           ],
-          followup_rule_regex: "(140|42|98|pro|nâng cấp|upgrade|3%|1,?420)",
+          keyword_hints_zh: [
+            "1) 总订单 = 820 + 600 = 1,420 单 -> 初始超卖 420 台。从门店调回 280 台后，净缺口 = 140 单！",
+            "2) 3% 取消率红线上限：1,420 × 3% = 42.6 -> 最多允许取消 42 单！至少 98–140 单需通过客服联系免费升级至 AIRFRY-09 PRO（现货 150 台）来保单！",
+            "3) BA 架构重构：废除 15 分钟定时任务，改为事件驱动 Webhook + Redis 毫秒级软预占（Soft Allocation）+ 带 5% 安全缓冲的渠道配额分配公式"
+          ],
+          followup_rule_regex: "(140|42|98|pro|nâng cấp|upgrade|3%|1,?420|升级|1420)",
           followup_probe_vi: "Kiểm tra con số vận hành ngay hôm nay nhé: sau khi điều chuyển 280 máy từ cửa hàng lẻ về thì bạn vẫn thiếu 140 đơn, trong khi trần phạt 3% trên tổng 1,420 đơn chỉ cho phép hủy tối đa 42 đơn! Bạn cứu ít nhất 98–140 đơn thiếu này thế nào trước 18:00, và công thức chia tồn kho an toàn (ATP / Buffer Stock) trên OMS bạn viết trong BRD ra sao?",
           spoken_probe_vi: "Kiểm tra con số vận hành ngay hôm nay nhé. Sau khi điều chuyển hai trăm tám mươi máy từ chuỗi cửa hàng lẻ về kho trung tâm thì bạn vẫn còn thiếu một trăm bốn mươi đơn, trong khi mức trần phạt ba phần trăm trên tổng một nghìn bốn trăm hai mươi đơn chỉ cho phép hủy tối đa bốn mươi hai đơn! Bạn cứu số đơn thiếu này như thế nào trước mười tám giờ chiều nay, và công thức chia tỷ lệ tồn kho dự phòng an toàn trên hệ thống bạn thiết kế ra sao?",
           followup_probe_en: "Let's check today's exact numbers: after transferring 280 retail store units, you are still short 140 orders while the 3 percent cap on 1,420 orders allows at most 42 cancellations! How do you save those 98 to 140 orders before 6:00 PM today, and what exact Available-to-Promise and Safety Buffer formula will you specify in your BRD?",
+          followup_probe_zh: "我们来核对今天的实际运营数字：从门店调拨 280 台后仍净缺 140 单，而在总计 1,420 单中 3% 的红线最多只允许取消 42 单！您如何在今天 18:00 前保住这 98 至 140 笔缺货订单？您在 BRD 中设计的 OMS 可承诺库存（ATP）与安全缓冲公式是什么？",
           ideal_answer: "Bước 1 (Tính toán Cứu đơn & Giữ trần NFR < 3%): Tổng đơn phát sinh là 820 + 600 = 1,420 đơn trên nền tồn WMS 1,000 máy (Oversell 420 máy). Tôi lập tức tạo lệnh Stock Transfer rút 280 máy từ chuỗi cửa hàng lẻ về kho trung tâm trong 6 giờ (chi phí 1.2 triệu đồng, kịp đóng gói trước 18:00), thu hẹp mức thiếu ròng còn 420 - 280 = 140 đơn. Do trần hủy an toàn 3% của 1,420 đơn chỉ cho phép tối đa 42 đơn hủy, để bảo vệ gian hàng Mall tôi chuyển danh sách 140 đơn đặt cuối cho CSKH gọi tặng nâng cấp miễn phí lên dòng AIRFRY-09 PRO (sẵn tồn 150 máy, bù giá vốn 140 × 65,000đ = 9.1 triệu đồng — nhỏ hơn rất nhiều so với thiệt hại khóa Flash Sale tháng sau), kéo tỷ lệ hủy lỗi Shop về ~0%. Bước 2 (Thiết kế lại kiến trúc OMS – WMS trong BRD): 1) Khai tử Batch Cron-job 15 phút, chuyển sang Event-driven Webhook nhận sự kiện Order Created để khóa tồn tạm thời (Soft Allocation trên Redis) dưới 500ms; 2) Thiết lập công thức ATP đẩy sàn: Sync_Stock = (Physical_WMS - Reserved_Qty - Safety_Buffer_5%) × Channel_Ratio (Shopee 60% / TikTok 40%), và tự động gom về 1 kênh duy nhất khi tồn chạm ngưỡng Low-stock <= 30 máy."
         },
         {
@@ -848,9 +1083,11 @@ window.LOGISTICS_DATA = {
           time_limit_sec: 150,
           title: "Quản trị Master Data Kích thước & Quy đổi Đơn vị tính (UoM) giữa WMS và TMS",
           title_en: "Master Data Governance for SKU Dimensions & Unit-of-Measure Across WMS and TMS",
+          title_zh: "WMS 与 TMS 之间的 SKU 尺寸及包装单位换算 (UoM) 主数据治理",
           question_text: "Khi tích hợp dữ liệu từ WMS sang TMS để tự động xếp tải trọng xe, lỗi kinh điển nhất là Master Data kích thước/trọng lượng SKU bị bỏ trống hoặc nhầm đơn vị Thùng vs Cái, làm thuật toán ghép xe sai hoàn toàn. Là Logistics BA, bạn thiết kế chốt chặn hệ thống như thế nào?",
           spoken_vi: "Khi tích hợp dữ liệu từ hệ thống quản lý kho sang phần mềm điều phối xe để tự động tính tải trọng xếp hàng, lỗi kinh điển nhất là dữ liệu gốc về kích thước và trọng lượng sản phẩm bị bỏ trống hoặc nhầm lẫn đơn vị tính giữa Thùng và Cái, làm thuật toán ghép xe tính sai hoàn toàn. Với vai trò chuyên viên phân tích nghiệp vụ, bạn thiết kế các chốt chặn kiểm soát dữ liệu trên hệ thống như thế nào?",
           question_text_en: "When integrating WMS with TMS for automated load planning, missing SKU dimensions and weights or Piece-versus-Carton unit mix-ups completely break routing algorithms. As a Logistics Business Analyst, how do you design system-level Master Data Governance?",
+          question_text_zh: "在将 WMS 数据对接至 TMS 实现自动智能配载时，最经典的痛点是 SKU 尺寸与重量主数据缺失，或“箱”与“件”单位混淆，导致配载算法完全失真。作为物流 BA，您如何设计系统级的主数据校验卡点？",
           expected_keywords: ["Master Data Governance", "Cubiscan", "UoM Conversion", "Validation Rule", "Single Source of Truth"],
           keyword_hints_vi: [
             "Thiết kế System Gate lúc First-Inbound: mã hàng mới chưa cân đo Dài × Rộng × Cao × Nặng thực tế thì hệ thống chặn chưa cho Put-away/Xuất hàng",
@@ -860,9 +1097,14 @@ window.LOGISTICS_DATA = {
             "Enforce a First-Inbound System Gate: block Put-away/Outbound for any new SKU until physical L×W×H and weight are captured via dimensioning scale",
             "Standardize Pack Hierarchy / UoM Conversion (Pallet -> Carton -> Inner -> Piece) with WMS as the Single Source of Truth"
           ],
+          keyword_hints_zh: [
+            "在首次入库（First-Inbound）设置系统硬卡点：未完成实测长×宽×高及重量录入的新品，系统禁止上架或出库",
+            "标准化多级包装单位换算表（1 托盘 = X 箱 = Y 中盒 = Z 件），确立 WMS 为唯一可信数据源（Single Source of Truth）"
+          ],
           followup_probe_vi: "Làm sao hệ thống tự động phát hiện nhân viên nhập nhầm đơn vị cm sang mm (làm thể tích CBM phóng đại gấp 1,000 lần) ngay trên màn hình nhập liệu?",
           spoken_probe_vi: "Làm sao phần mềm có thể tự động phát hiện ngay lập tức khi nhân viên gõ nhầm đơn vị xăng ti mét sang mi li mét làm thể tích kiện hàng bị phóng đại gấp một nghìn lần ngay trên màn hình nhập liệu?",
           followup_probe_en: "How can your validation rules automatically catch an operator typing millimeters instead of centimeters—which inflates cubic volume by 1,000 times—right on the input screen?",
+          followup_probe_zh: "如果操作员在录入界面误把厘米（cm）输成毫米（mm），导致单箱体积（CBM）被放大 1,000 倍，系统校验规则如何即时拦截？",
           ideal_answer: "(S) Dữ liệu kích thước/trọng lượng nhập tay sai lệch ở 28% mã mới khiến TMS tính sai CBM xe tải. (T) Đảm bảo độ chính xác Master Data >= 99.5%. (A) Tôi thiết kế chốt chặn First-Inbound Gate trên WMS: bất kỳ SKU mới nào nhập kho lần đầu đều tự động bật cờ bắt buộc qua trạm cân đo Cubiscan để ghi nhận L-W-H-Weight cho từng cấp đóng gói (Base UoM -> Inner -> Master Carton -> Pallet), đồng thời cài Validation Rule cảnh báo đỏ nếu tỷ trọng Khối lượng/Thể tích nằm ngoài ngưỡng vật lý hợp lý (chặn ngay lỗi gõ nhầm mm với cm). WMS đóng vai trò Single Source of Truth đồng bộ tự động sang OMS và TMS qua API. (R) Độ chính xác tính CBM xếp xe của TMS đạt 99.7%, xóa bỏ tình trạng dôi hàng tại cửa xuất."
         }
       ]

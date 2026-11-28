@@ -40,6 +40,16 @@ function buildStyleDirectorPrefix(lang = "vi", level = "Junior") {
     return "Say in a natural, engaging, conversational interviewer voice at a smooth pace";
   }
 
+  if (lang === "zh") {
+    if (level === "Intern/Fresher") {
+      return "Say in a warm, friendly, encouraging standard Mandarin Chinese mentor voice at a natural conversational pace";
+    }
+    if (level === "Senior") {
+      return "Say in a calm, poised, executive standard Mandarin Chinese voice with natural conversational flow";
+    }
+    return "Say in a natural, engaging, conversational standard Mandarin Chinese interviewer voice at a smooth pace";
+  }
+
   // Tiếng Việt: Hướng dẫn phong cách phát âm chuẩn giọng người Việt trò chuyện tự nhiên, ấm áp, không đọc như trả bài
   if (level === "Intern/Fresher") {
     return "Say in a warm, gentle, friendly Vietnamese mentor voice, speaking smoothly and conversationally like chatting in person";

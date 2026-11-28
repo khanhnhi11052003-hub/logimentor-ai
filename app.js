@@ -796,10 +796,17 @@
     if (!q) return;
 
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     const mentor = getActiveMentor();
-    const qPrompt = isEn ? q.question_text_en : q.spoken_vi || q.question_text;
+    const qPrompt = isEn
+      ? q.question_text_en
+      : isZh
+      ? q.question_text_zh || q.question_text_en
+      : q.spoken_vi || q.question_text;
     const rawSpoken = isEn
       ? `Hello! I am ${mentor.spokenNameEn || mentor.nameEn}. Welcome to your ${track.nameEn} interview practice. Let's begin with Question ${qIdx + 1}. ${qPrompt}`
+      : isZh
+      ? `您好！我是${mentor.spokenNameZh || mentor.nameZh}。欢迎来到您的${track.nameZh}面试实战练习。我们从第 ${qIdx + 1} 题开始：${qPrompt}`
       : adaptMentorToneByRegion(
           `Chào bạn! Mình là ${mentor.spokenNameVi || mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.spokenNameVi || track.name} nhé. Câu hỏi số ${qIdx + 1} dành cho bạn: ${qPrompt}`
         );
@@ -881,10 +888,24 @@
       ? null
       : voices.find(v => v.lang.toLowerCase().startsWith("en"));
 
+    const azureZhNatural = voices.find(
+      v => v.lang.toLowerCase().startsWith("zh") && /Online.*Natural|Xiaoxiao|Yunxi|Yunjian/i.test(v.name)
+    );
+    const googleZh = voices.find(
+      v => v.lang.toLowerCase().startsWith("zh") && /Google/i.test(v.name) && !isLegacyOfflineSapi(v)
+    );
+    const cleanOtherZh = voices.find(
+      v => v.lang.toLowerCase().startsWith("zh") && !isLegacyOfflineSapi(v)
+    );
+    const anyZhFallback = isOnlineHttp
+      ? null
+      : voices.find(v => v.lang.toLowerCase().startsWith("zh"));
+
     return {
       multilingualViVoice: azureViNatural || null,
       viVoice: azureViNatural || googleVi || cleanOtherVi || anyViFallback || null,
-      enVoice: azureEnNatural || googleEn || cleanOtherEn || anyEnFallback || null
+      enVoice: azureEnNatural || googleEn || cleanOtherEn || anyEnFallback || null,
+      zhVoice: azureZhNatural || googleZh || cleanOtherZh || anyZhFallback || null
     };
   }
 
@@ -913,6 +934,22 @@
       .replace(/[*#_~`]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+
+    if (lang === "zh") {
+      return s
+        .replace(/(\d),(?=\d{3}\b)/g, "$1")
+        .replace(/(\d),(?=\d{3})/g, "$1")
+        .replace(/02x40'HC/gi, "两个 40 尺高柜")
+        .replace(/40'HC/gi, "40 尺高柜")
+        .replace(/>=\s*(\d+(?:\.\d+)?%?)/g, "不少于 $1")
+        .replace(/<=\s*(\d[\d,.]*%?)/g, "不超过 $1")
+        .replace(/\(\s*1\s*\)/g, "。第一，")
+        .replace(/\(\s*2\s*\)/g, "。第二，")
+        .replace(/\(\s*3\s*\)/g, "。第三，")
+        .replace(/\s*[—–]\s*/g, "。")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
     if (lang === "en") {
       return s
@@ -1318,6 +1355,8 @@
         "ai_asking",
         state.selectedLang === "en"
           ? "Ready — Click Mic to speak or edit your answer below."
+          : state.selectedLang === "zh"
+          ? "已就绪 — 点击麦克风语音作答，或在下方编辑您的回答。"
           : "Sẵn sàng — Bấm Mic để trả lời hoặc tính toán & gõ trực tiếp bên dưới.",
         false
       );
@@ -1457,9 +1496,16 @@
     const nextQ = state.questionsPlan[nextIdx];
     if (!nextQ) return;
     const isEn = state.selectedLang === "en";
-    const qPrompt = isEn ? nextQ.question_text_en : nextQ.spoken_vi || nextQ.question_text;
+    const isZh = state.selectedLang === "zh";
+    const qPrompt = isEn
+      ? nextQ.question_text_en
+      : isZh
+      ? nextQ.question_text_zh || nextQ.question_text_en
+      : nextQ.spoken_vi || nextQ.question_text;
     const rawNextSpoken = isEn
       ? `Let's move on to Question ${nextIdx + 1}. ${qPrompt}`
+      : isZh
+      ? `接下来进入第 ${nextIdx + 1} 题：${qPrompt}`
       : adaptMentorToneByRegion(`Tiếp theo là câu hỏi số ${nextIdx + 1}: ${qPrompt}`);
     const prepared = prepareCleanSpokenScript(rawNextSpoken, state.selectedLang);
     setTimeout(() => {
@@ -1482,6 +1528,8 @@
         "ai_asking",
         state.selectedLang === "en"
           ? "Question posted. Take your time to think & answer!"
+          : state.selectedLang === "zh"
+          ? "题目已展示，请从容思考并开始作答！"
           : "Đã hiển thị câu hỏi. Bạn thoải mái suy nghĩ và trả lời nhé!",
         false
       );
@@ -1505,6 +1553,8 @@
         "ai_asking",
         lang === "en"
           ? "Your turn! Speak naturally or calculate & type freely."
+          : lang === "zh"
+          ? "轮到您了！请通过麦克风自然作答，或使用右侧计算器辅助计算。"
           : "Tới lượt bạn! Hãy nói tự nhiên qua Mic hoặc bấm máy tính bên phải.",
         false
       );
@@ -1636,19 +1686,22 @@
       try { synth.resume(); } catch (_) {}
     }
 
-    const { multilingualViVoice, viVoice, enVoice } = pickBestVoices(voices);
+    const { multilingualViVoice, viVoice, enVoice, zhVoice } = pickBestVoices(voices);
     const hasViVoice = Boolean(multilingualViVoice || viVoice);
     const hasEnVoice = Boolean(enVoice);
-    const canUseSpeechSynthesis = synth && (lang === "en" ? hasEnVoice : hasViVoice);
+    const hasZhVoice = Boolean(zhVoice);
+    const canUseSpeechSynthesis =
+      synth && (lang === "en" ? hasEnVoice : lang === "zh" ? hasZhVoice : hasViVoice);
 
     if (canUseSpeechSynthesis) {
       const u = new SpeechSynthesisUtterance(preparedScript);
-      const chosenVoice = lang === "en" ? enVoice : (multilingualViVoice || viVoice);
+      const chosenVoice =
+        lang === "en" ? enVoice : lang === "zh" ? zhVoice : multilingualViVoice || viVoice;
       if (chosenVoice) {
         u.voice = chosenVoice;
         u.lang = chosenVoice.lang;
       } else {
-        u.lang = lang === "en" ? "en-US" : "vi-VN";
+        u.lang = lang === "en" ? "en-US" : lang === "zh" ? "zh-CN" : "vi-VN";
       }
       u.rate = Math.max(0.95, Math.min(1.08, userRate));
       u.pitch = 1.0;
@@ -1779,7 +1832,7 @@
   }
 
   function detectVietnameseDialect(text) {
-    if (!text || state.selectedLang === "en") return;
+    if (!text || state.selectedLang !== "vi") return;
     const lower = text.toLowerCase();
     if (/\b(răng|rứa|mô|tê|ni|nớ|chừ|bữa ni|đà nẵng|huế|tiên sa|chu lai)\b/i.test(lower)) {
       state.detectedRegion = "central";
@@ -1801,6 +1854,10 @@
       el.roomDialectBadge.textContent = "English Native Voice";
       return;
     }
+    if (state.selectedLang === "zh") {
+      el.roomDialectBadge.textContent = "中文普通话 (Mandarin)";
+      return;
+    }
     const labels = {
       north: "Song ngữ Việt (Bắc) – Anh",
       central: "Song ngữ Việt (Trung) – Anh",
@@ -1810,7 +1867,7 @@
   }
 
   function adaptMentorToneByRegion(text) {
-    if (!text || state.selectedLang === "en") return text;
+    if (!text || state.selectedLang !== "vi") return text;
     if (state.detectedRegion === "south") {
       return text
         .replace(/\bVâng,\s*/g, "Dạ, ")
@@ -1941,6 +1998,7 @@
     if (!hasGeminiCapability()) return null;
     const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     const track = getActiveTrack();
     const mentor = getActiveMentor();
     const alreadyAskedFollowup = Boolean(state.hasAskedFollowUpByQ[qIdx]);
@@ -1953,12 +2011,29 @@
       draftText: draftText || "",
       lang: state.selectedLang,
       level: state.selectedLevel,
-      mentorName: isEn ? mentor.nameEn || mentor.name : mentor.name,
-      trackName: isEn ? track.nameEn : track.name,
-      questionText: isEn ? qObj.question_text_en : qObj.question_text,
+      mentorName: isEn
+        ? mentor.nameEn || mentor.name
+        : isZh
+        ? mentor.nameZh || mentor.name
+        : mentor.name,
+      trackName: isEn ? track.nameEn : isZh ? track.nameZh || track.name : track.name,
+      questionText: isEn
+        ? qObj.question_text_en
+        : isZh
+        ? qObj.question_text_zh || qObj.question_text_en
+        : qObj.question_text,
       expectedKeywords: qObj.expected_keywords || [],
-      caseHint: qObj.case_study_board?.unit_hint || "",
-      fallbackProbe: isEn ? qObj.followup_probe_en : qObj.followup_probe_vi,
+      caseHint:
+        (isEn
+          ? qObj.case_study_board_en?.unit_hint
+          : isZh
+          ? qObj.case_study_board_zh?.unit_hint
+          : qObj.case_study_board?.unit_hint) || "",
+      fallbackProbe: isEn
+        ? qObj.followup_probe_en
+        : isZh
+        ? qObj.followup_probe_zh || qObj.followup_probe_en
+        : qObj.followup_probe_vi,
       alreadyAskedFollowup,
       hasNextQuestion: targetNextIdx !== -1,
       nextQuestionNumber: targetNextIdx !== -1 ? targetNextIdx + 1 : state.questionsPlan.length
@@ -2135,11 +2210,14 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
   function setMicActiveUI(targetTextarea, retryBtnEl) {
     state.isMicRecording = true;
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     if (targetTextarea === el.answerTranscriptInput) {
       if (el.btnMicRecord) el.btnMicRecord.classList.add("recording");
       if (el.micBtnLabel) {
         el.micBtnLabel.textContent = isEn
           ? "Listening... (Click to pause Mic)"
+          : isZh
+          ? "正在聆听... (点击暂停麦克风)"
           : "Đang lắng nghe bạn... (Bấm để dừng)";
       }
       setMentorStageVisual(
@@ -2148,13 +2226,21 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
           ? state.handsFreeMode
             ? "🎙️ Listening hands-free — Speak naturally; pause 2.5s when finished to auto-send!"
             : "🎙️ Listening — Pause anytime to calculate or edit text."
+          : isZh
+          ? state.handsFreeMode
+            ? "🎙️ 免提自动聆听中 — 请自然作答，说完停顿 2.5 秒将自动提交！"
+            : "🎙️ 正在聆听 — 您可以随时暂停进行计算或编辑文字。"
           : state.handsFreeMode
           ? "🎙️ Đang lắng nghe tự động — Cứ nói tự nhiên, dừng 2.5 giây khi chốt ý AI sẽ tự đáp lại!"
           : "🎙️ Bạn đang trả lời — Cứ dừng lại tính toán thoải mái, bấm Gửi khi hoàn tất.",
         true
       );
     } else if (retryBtnEl) {
-      retryBtnEl.textContent = isEn ? "Recording... (Click to stop)" : "Đang thu âm... (Bấm để dừng)";
+      retryBtnEl.textContent = isEn
+        ? "Recording... (Click to stop)"
+        : isZh
+        ? "正在录音... (点击停止)"
+        : "Đang thu âm... (Bấm để dừng)";
       retryBtnEl.classList.add("recording");
     }
   }
@@ -2228,7 +2314,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const streamOk = await startMicAudioCaptureAndWaveform();
 
     if (recognition) {
-      recognition.lang = state.selectedLang === "en" ? "en-US" : "vi-VN";
+      recognition.lang =
+        state.selectedLang === "en" ? "en-US" : state.selectedLang === "zh" ? "zh-CN" : "vi-VN";
       try {
         recognition.start();
       } catch (_) {}
@@ -2266,7 +2353,11 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     if (el.btnMicRecord) el.btnMicRecord.classList.remove("recording");
     if (el.micBtnLabel) {
       el.micBtnLabel.textContent =
-        state.selectedLang === "en" ? "Click to Speak (Alt + M)" : "Bấm để nói (Alt + M)";
+        state.selectedLang === "en"
+          ? "Click to Speak (Alt + M)"
+          : state.selectedLang === "zh"
+          ? "点击语音作答 (Alt + M)"
+          : "Bấm để nói (Alt + M)";
     }
     if (state.activeMicRetryBtn) {
       state.activeMicRetryBtn.textContent = "Ghi âm giọng nói";
@@ -2279,6 +2370,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const track = getActiveTrack();
     const mentor = getActiveMentor();
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
 
     state.activeSessionId = `sess-${track.id}-${Date.now().toString().slice(-6)}`;
     state.questionsPlan = JSON.parse(JSON.stringify(track.questions || []));
@@ -2292,18 +2384,32 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
 
     if (el.quickStartModal) el.quickStartModal.classList.remove("open");
     if (el.roomTrackBadge) {
-      el.roomTrackBadge.textContent = isEn ? track.shortTitleEn || track.nameEn : track.shortTitle;
+      el.roomTrackBadge.textContent = isEn
+        ? track.shortTitleEn || track.nameEn
+        : isZh
+        ? track.shortTitleZh || track.nameZh || track.shortTitle
+        : track.shortTitle;
     }
     if (el.roomLevelBadge) el.roomLevelBadge.textContent = state.selectedLevel;
     if (el.mentorNameLabel) {
-      el.mentorNameLabel.textContent = isEn ? mentor.nameEn || mentor.name : mentor.name;
+      el.mentorNameLabel.textContent = isEn
+        ? mentor.nameEn || mentor.name
+        : isZh
+        ? mentor.nameZh || mentor.name
+        : mentor.name;
     }
     if (el.mentorRoleChip) {
-      el.mentorRoleChip.textContent = isEn ? mentor.badgeEn || mentor.badge : mentor.badge;
+      el.mentorRoleChip.textContent = isEn
+        ? mentor.badgeEn || mentor.badge
+        : isZh
+        ? mentor.badgeZh || mentor.badge
+        : mentor.badge;
     }
     if (el.answerTranscriptInput) {
       el.answerTranscriptInput.placeholder = isEn
         ? "Click the Mic to speak in English, or type your structured STAR answer here..."
+        : isZh
+        ? "点击麦克风用中文普通话作答，或在此输入您的 STAR 结构化回答..."
         : "Bấm nút Mic để trả lời bằng giọng nói hoặc gõ trực tiếp câu trả lời của bạn tại đây...";
     }
     if (el.scratchpadTextarea) el.scratchpadTextarea.value = "";
@@ -2342,11 +2448,12 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
   function renderQuestionStepperPills() {
     if (!el.questionStepperPills) return;
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     el.questionStepperPills.innerHTML = state.questionsPlan
       .map((q, idx) => {
         const isDone = Boolean(state.qaAnswersByQ[idx]);
         const isActive = idx === state.currentQIndex;
-        const baseQ = isEn ? `Q${idx + 1}` : `Câu ${idx + 1}`;
+        const baseQ = isEn ? `Q${idx + 1}` : isZh ? `第 ${idx + 1} 题` : `Câu ${idx + 1}`;
         const label = q.case_study_board ? `${baseQ} · Case Study` : baseQ;
         return `<button type="button" class="q-step-pill ${isActive ? "active" : ""} ${
           isDone && !isActive ? "done" : ""
@@ -2445,10 +2552,19 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     }
 
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     const track = getActiveTrack();
     const mentor = getActiveMentor();
-    const qTitle = isEn ? q.title_en || q.title : q.title;
-    const qPrompt = isEn ? q.question_text_en : q.question_text;
+    const qTitle = isEn
+      ? q.title_en || q.title
+      : isZh
+      ? q.title_zh || q.title_en || q.title
+      : q.title;
+    const qPrompt = isEn
+      ? q.question_text_en
+      : isZh
+      ? q.question_text_zh || q.question_text_en
+      : q.question_text;
 
     let displayMsg = "";
     let spokenMsg = "";
@@ -2457,6 +2573,9 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       if (isEn) {
         displayMsg = `Hello! I am ${mentor.nameEn || mentor.name}. Welcome to your ${track.nameEn} (${state.selectedLevel}) interview practice.\n\nQuestion ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
         spokenMsg = `Hello! I am ${mentor.spokenNameEn || mentor.nameEn}. Welcome to your ${track.nameEn} interview practice. Let's begin with Question ${qIdx + 1}. ${qPrompt}`;
+      } else if (isZh) {
+        displayMsg = `您好！我是${mentor.nameZh || mentor.name}。欢迎参加您的${track.nameZh || track.name}（${state.selectedLevel}）实战模拟面试。\n\n第 ${qIdx + 1} 题 — ${qTitle}：\n${qPrompt}`;
+        spokenMsg = `您好！我是${mentor.spokenNameZh || mentor.nameZh}。欢迎来到您的${track.nameZh}面试实战练习。我们从第 ${qIdx + 1} 题开始：${qPrompt}`;
       } else {
         displayMsg = `Chào bạn! Mình là ${mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.name} nhé.\n\nCâu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`;
         spokenMsg = `Chào bạn! Mình là ${mentor.spokenNameVi || mentor.name}. Chúng ta bắt đầu buổi phỏng vấn chuyên ngành ${track.spokenNameVi || track.name} nhé. Câu hỏi số ${qIdx + 1} dành cho bạn: ${q.spoken_vi || qPrompt}`;
@@ -2471,6 +2590,13 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
         spokenMsg = cleanLeadSpoken
           ? `${cleanLeadSpoken} Now let's move on to Question ${qIdx + 1}. ${qPrompt}`
           : `Let's move on to Question ${qIdx + 1}. ${qPrompt}`;
+      } else if (isZh) {
+        displayMsg = cleanLeadDisp
+          ? `${cleanLeadDisp}\n\n第 ${qIdx + 1} 题 — ${qTitle}：\n${qPrompt}`
+          : `第 ${qIdx + 1} 题 — ${qTitle}：\n${qPrompt}`;
+        spokenMsg = cleanLeadSpoken
+          ? `${cleanLeadSpoken} 接下来我们进入第 ${qIdx + 1} 题：${qPrompt}`
+          : `接下来进入第 ${qIdx + 1} 题：${qPrompt}`;
       } else {
         displayMsg = cleanLeadDisp
           ? `${cleanLeadDisp}\n\nCâu hỏi ${qIdx + 1} — ${qTitle}:\n${qPrompt}`
@@ -2483,14 +2609,24 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
 
     const adaptedDisplay = adaptMentorToneByRegion(displayMsg);
     const adaptedSpoken = adaptMentorToneByRegion(spokenMsg);
-    appendChatBubble("ai", adaptedDisplay, isEn ? `Question ${qIdx + 1}` : `Câu ${qIdx + 1}`, false);
+    appendChatBubble(
+      "ai",
+      adaptedDisplay,
+      isEn ? `Question ${qIdx + 1}` : isZh ? `第 ${qIdx + 1} 题` : `Câu ${qIdx + 1}`,
+      false
+    );
     speakMentorText(adaptedSpoken);
     prefetchNextQuestionStudioAudio(qIdx + 1);
   }
 
   function updateCaseStudyPanelForQuestion(q) {
     const isEn = state.selectedLang === "en";
-    const activeBoard = isEn ? q?.case_study_board_en || q?.case_study_board : q?.case_study_board;
+    const isZh = state.selectedLang === "zh";
+    const activeBoard = isEn
+      ? q?.case_study_board_en || q?.case_study_board
+      : isZh
+      ? q?.case_study_board_zh || q?.case_study_board_en || q?.case_study_board
+      : q?.case_study_board;
     const hasBoard = Boolean(activeBoard);
     if (el.interviewLayoutGrid) {
       el.interviewLayoutGrid.classList.toggle("has-case-study", hasBoard);
@@ -2509,7 +2645,11 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       el.caseDomainBadge.textContent = `CASE STUDY · ${q.domain} · ${q.question_id.toUpperCase()}`;
     }
     if (el.caseBoardTitle) {
-      el.caseBoardTitle.textContent = isEn ? q.title_en || q.title : q.title;
+      el.caseBoardTitle.textContent = isEn
+        ? q.title_en || q.title
+        : isZh
+        ? q.title_zh || q.title_en || q.title
+        : q.title;
     }
 
     const headersHtml = (board.table_headers || [])
@@ -2518,6 +2658,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
 
     const rowClickHint = isEn
       ? "Click row to copy data into Scratchpad"
+      : isZh
+      ? "点击行将数据复制到草稿本"
       : "Nhấp vào dòng để trích xuất số liệu xuống Ghi chú nháp";
 
     const rowsHtml = (board.table_rows || [])
@@ -2591,6 +2733,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const q = state.questionsPlan[state.currentQIndex];
     if (!q) return;
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
 
     if (el.hintKeywordsTags) {
       el.hintKeywordsTags.innerHTML = (q.expected_keywords || [])
@@ -2609,7 +2752,11 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     }
 
     if (el.hintGuideBullets) {
-      const bullets = isEn ? q.keyword_hints_en || q.keyword_hints_vi || [] : q.keyword_hints_vi || [];
+      const bullets = isEn
+        ? q.keyword_hints_en || q.keyword_hints_vi || []
+        : isZh
+        ? q.keyword_hints_zh || q.keyword_hints_en || q.keyword_hints_vi || []
+        : q.keyword_hints_vi || [];
       el.hintGuideBullets.innerHTML = bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("");
     }
 
@@ -2619,8 +2766,13 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
   function appendChatBubble(role, text, metaLabel, isProbe = false, audioUrl = "") {
     if (!el.chatStream) return;
     const isEn = state.selectedLang === "en";
+    const isZh = state.selectedLang === "zh";
     const mentor = getActiveMentor();
-    const mentorDisplayName = isEn ? mentor.nameEn || mentor.name : mentor.name;
+    const mentorDisplayName = isEn
+      ? mentor.nameEn || mentor.name
+      : isZh
+      ? mentor.nameZh || mentor.name
+      : mentor.name;
 
     const div = document.createElement("div");
     div.className = `chat-msg ${role === "ai" ? "chat-msg-ai" : "chat-msg-user"} ${
@@ -2630,12 +2782,16 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const who =
       role === "ai"
         ? `<span class="msg-role-badge">${ICONS.bot} <span>${escapeHtml(mentorDisplayName)}</span></span>`
-        : `<span class="msg-role-badge"><span>${isEn ? "Your Answer" : "Câu trả lời của bạn"}</span></span>`;
+        : `<span class="msg-role-badge"><span>${
+            isEn ? "Your Answer" : isZh ? "您的回答" : "Câu trả lời của bạn"
+          }</span></span>`;
 
     const audioHtml =
       role === "user" && audioUrl
         ? `<div class="audio-playback-bar">
-             <span style="font-size:0.72rem; font-weight:700;">${isEn ? "Voice Recording:" : "Bản thu giọng nói:"}</span>
+             <span style="font-size:0.72rem; font-weight:700;">${
+               isEn ? "Voice Recording:" : isZh ? "语音录音：" : "Bản thu giọng nói:"
+             }</span>
              <audio controls preload="metadata" src="${escapeHtml(audioUrl)}"></audio>
            </div>`
         : "";
@@ -2813,6 +2969,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const qIdx = state.currentQIndex;
     const qObj = state.questionsPlan[qIdx];
     const isEnSession = state.selectedLang === "en";
+    const isZhSession = state.selectedLang === "zh";
     let rawInput = el.answerTranscriptInput ? el.answerTranscriptInput.value.trim() : "";
 
     // Nếu cả chữ lẫn file âm thanh đều rỗng thì bỏ qua
@@ -2834,6 +2991,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
         "ai_analyzing",
         isEnSession
           ? "✨ AI Mentor is listening & thinking..."
+          : isZhSession
+          ? "✨ AI 面试官正在聆听并思考回复..."
           : "✨ AI Mentor đang lắng nghe và suy nghĩ phản hồi trực tiếp...",
         false
       );
@@ -2854,7 +3013,9 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
     const cleanAnswer = state.selectedLang === "vi" ? applyPhoneticVietlishFix(rawInput) : rawInput;
     detectVietnameseDialect(cleanAnswer);
 
-    const wordCount = cleanAnswer.split(/\s+/).filter(Boolean).length;
+    const wordCount = isZhSession
+      ? cleanAnswer.replace(/\s+/g, "").length
+      : cleanAnswer.split(/\s+/).filter(Boolean).length;
     const latencySec =
       state.questionAskedAt && state.firstTypedOrSpokenAt
         ? Number(
@@ -2869,6 +3030,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       cleanAnswer,
       isEnSession
         ? `${wordCount} words · Response in ${latencySec}s`
+        : isZhSession
+        ? `${wordCount} 字 · 反应 ${latencySec}s`
         : `${wordCount} từ · Phản xạ ${latencySec}s`,
       false,
       recorded.audioUrl
@@ -2881,7 +3044,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
 
     const missedCaseConstraint =
       qObj.followup_rule_regex && !new RegExp(qObj.followup_rule_regex, "i").test(cleanAnswer);
-    const tooBrief = wordCount < 20;
+    const tooBrief = isZhSession ? wordCount < 35 : wordCount < 20;
     const shouldAskFollowup =
       !state.hasAskedFollowUpByQ[qIdx] &&
       (geminiTurnResult ? Boolean(geminiTurnResult.needs_followup) : missedCaseConstraint || tooBrief);
@@ -2896,6 +3059,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       };
 
       const isEn = state.selectedLang === "en";
+      const isZh = state.selectedLang === "zh";
       let displayProbe = geminiTurnResult?.display_reply || "";
       let spokenProbe = geminiTurnResult?.spoken_reply || displayProbe;
 
@@ -2907,6 +3071,8 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
           "ai_analyzing",
           isEn
             ? "AI Mentor is preparing a follow-up question..."
+            : isZh
+            ? "AI 面试官正在准备深入追问..."
             : "Coze Bot Brain đang suy nghĩ câu hỏi phản biện...",
           false
         );
@@ -2923,12 +3089,20 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       }
 
       if (!displayProbe) {
-        const probeBody = isEn ? qObj.followup_probe_en : qObj.followup_probe_vi;
+        const probeBody = isEn
+          ? qObj.followup_probe_en
+          : isZh
+          ? qObj.followup_probe_zh || qObj.followup_probe_en
+          : qObj.followup_probe_vi;
         const spokenProbeBody = isEn
           ? qObj.followup_probe_en
+          : isZh
+          ? qObj.followup_probe_zh || qObj.followup_probe_en
           : qObj.spoken_probe_vi || qObj.followup_probe_vi;
         const probePrefix = isEn
           ? "Good point! Let me ask one follow-up detail:\n"
+          : isZh
+          ? "切入点不错！我想进一步追问一个实际细节：\n"
           : "Hướng tiếp cận tốt đấy! Mình hỏi sâu thêm một chi tiết thực tế này nhé:\n";
         displayProbe = adaptMentorToneByRegion(probePrefix + probeBody);
         spokenProbe = adaptMentorToneByRegion(probePrefix + spokenProbeBody);
@@ -2937,7 +3111,7 @@ Hãy đóng vai Quản lý Vận hành phỏng vấn: nhận xét ngắn gọn 1
       appendChatBubble(
         "ai",
         displayProbe,
-        isEn ? "Follow-up Question" : "Câu hỏi gợi mở tầng 2",
+        isEn ? "Follow-up Question" : isZh ? "深入追问" : "Câu hỏi gợi mở tầng 2",
         true
       );
       speakMentorText(spokenProbe);
@@ -4354,6 +4528,8 @@ QUY TẮC:
         const sampleText =
           state.selectedLang === "en"
             ? "Hello! Welcome to your Logistics interview session. Take a deep breath, and whenever you're ready, walk me through your approach."
+            : state.selectedLang === "zh"
+            ? "您好！欢迎来到物流与供应链模拟面试。请放松心情，准备好后就可以向我分享您的解决思路。"
             : "Chào bạn! Rất vui được đồng hành cùng bạn trong buổi phỏng vấn thực chiến hôm nay. Bạn cứ bình tĩnh suy nghĩ và chia sẻ hướng xử lý của mình nhé!";
 
         try {

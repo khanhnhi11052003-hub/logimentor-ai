@@ -81,6 +81,7 @@ export default async function handler(req, res) {
     } = body;
 
     const isEn = lang === "en";
+    const isZh = lang === "zh";
     const parts = [];
 
     if (audioDataUrl && audioDataUrl.includes(",")) {
@@ -108,6 +109,18 @@ TASKS:
    - Specifically acknowledge 1 concrete point the candidate just said so they feel truly heard!
    - If needs_followup = true: naturally ask 1 concise, supportive follow-up question (inspired by: "${fallbackProbe}").
    - If needs_followup = false: give a warm, brief 1-sentence compliment on their answer${hasNextQuestion ? ` (do NOT ask Question ${nextQuestionNumber} yet—just acknowledge smoothly in 1 short sentence)` : ", and congratulate them on completing the final question"}.`
+      : isZh
+      ? `你是 ${mentorName}，一位专业、敏锐且善于鼓励学生的${level}级别物流与供应链面试官（方向：${trackName}）。
+任务要求：
+1. 如果附带了语音文件（inlineData），请将其准确转录为简体中文存入 "transcript" 字段（准确保留 WMS、TMS、OMS、FEFO、Safety Stock、ROP、Cost per Drop、FADR、NDR、C/O Form E、HS Code、DEM/DET 等专业术语及计算数字）。如果音频为空或静音，则使用提供的 draftText。
+2. 判断 "needs_followup"：
+   - 如果 alreadyAskedFollowup 为 true，必须强制设为 false。
+   - 如果 alreadyAskedFollowup 为 false：仅当回答过短（少于 35 个汉字）或遗漏关键计算数字、核心约束条件时设为 true；若思路清晰且数据合理则设为 false。
+3. 使用 100% 自然流畅的中文普通话撰写 "display_reply" 和 "spoken_reply"（严禁混杂越南语）：
+   - 明确复述或肯定候选人刚才提到的 1 个具体要点，让对方感受到被认真倾听！
+   - 若 needs_followup = true：自然地提出 1 个简练且有启发性的追问（可参考："${fallbackProbe}"）。
+   - 若 needs_followup = false：用温暖简短的一句话给予肯定${hasNextQuestion ? `（请勿提前问第 ${nextQuestionNumber} 题，只需自然承接过渡即可）` : "，并祝贺候选人顺利完成最后一题"}。
+   - 对 "spoken_reply" 特别要求：表达口语化、自然流畅，适合语音合成朗读。`
       : `Bạn là ${mentorName}, người phỏng vấn thực chiến thân thiện, điềm đạm và sắc bén ngành ${trackName} (cấp độ ${level}).
 NHIỆM VỤ:
 1. Nếu có đính kèm file ghi âm (inlineData), hãy nghe và phiên âm CHÍNH XÁC lời nói của sinh viên sang văn bản Tiếng Việt trong trường "transcript" (tự động viết chuẩn các thuật ngữ chuyên ngành sinh viên nói như WMS, TMS, OMS, FEFO, FIFO, Quarantine, Cycle Count, Safety Stock, ROP, Cost per Drop, FADR, NDR, B/L, C/O Form E, HS Code, DEM/DET và các con số tính toán; bỏ từ đệm ờ, à). Nếu không có file âm thanh hoặc âm thanh rỗng, dùng nội dung draftText.

@@ -943,9 +943,33 @@
         .replace(/40'HC/gi, "40 尺高柜")
         .replace(/>=\s*(\d+(?:\.\d+)?%?)/g, "不少于 $1")
         .replace(/<=\s*(\d[\d,.]*%?)/g, "不超过 $1")
+        .replace(/(\d+(?:\.\d+)?)\s*÷\s*(\d+(?:\.\d+)?)/g, "$1 除以 $2")
+        .replace(/(\d+(?:\.\d+)?)\s*[×x]\s*(\d+(?:\.\d+)?)/gi, "$1 乘以 $2")
         .replace(/\(\s*1\s*\)/g, "。第一，")
         .replace(/\(\s*2\s*\)/g, "。第二，")
         .replace(/\(\s*3\s*\)/g, "。第三，")
+        .replace(/（\s*[A-Za-z0-9\s\/&.,'-]{2,45}\s*）/g, "")
+        .replace(/\(\s*[A-Za-z0-9\s\/&.,'-]{2,45}\s*\)/g, "")
+        .replace(/\bB\/L\b/g, "海运提单")
+        .replace(/\bC\/O Form E\b/gi, "Form E 原产地证")
+        .replace(/\bC\/O\b/g, "原产地证")
+        .replace(/\bCBM\b/g, "立方米")
+        .replace(/(\d+(?:\.\d+)?)\s*kg\b/gi, "$1 公斤")
+        .replace(/(\d+(?:\.\d+)?)\s*m2\b/gi, "$1 平方米")
+        .replace(/\bWMS\b/g, "W M S")
+        .replace(/\bTMS\b/g, "T M S")
+        .replace(/\bOMS\b/g, "O M S")
+        .replace(/\bSKU\b/g, "S K U")
+        .replace(/\bKPI\b/g, "K P I")
+        .replace(/\bSLA\b/g, "S L A")
+        .replace(/\bCOD\b/g, "C O D")
+        .replace(/\bROP\b/g, "R O P")
+        .replace(/\bATP\b/g, "A T P")
+        .replace(/\bNDR\b/g, "N D R")
+        .replace(/\bFADR\b/g, "F A D R")
+        .replace(/\bUAT\b/g, "U A T")
+        .replace(/\bBRD\b/g, "B R D")
+        .replace(/\bHS\b/g, "H S")
         .replace(/\s*[—–]\s*/g, "。")
         .replace(/\s+/g, " ")
         .trim();
@@ -960,6 +984,10 @@
         .replace(/>=\s*(\d+(?:\.\d+)?%?)/g, "at least $1")
         .replace(/<=\s*(\d[\d,.]*%?)/g, "at most $1")
         .replace(/>\s*(\d+(?:\.\d+)?)T\b/gi, "over $1 tons")
+        .replace(/(\d+(?:\.\d+)?)\s*÷\s*(\d+(?:\.\d+)?)/g, "$1 divided by $2")
+        .replace(/(\d+(?:\.\d+)?)\s*[×x]\s*(\d+(?:\.\d+)?)/gi, "$1 times $2")
+        .replace(/(\d+(?:\.\d+)?)\s*m2\b/gi, "$1 square meters")
+        .replace(/(\d+(?:\.\d+)?)\s*kg\b/gi, "$1 kilograms")
         .replace(/\bHCMC\b/g, "Ho Chi Minh City")
         .replace(/\bVND\b/g, "Vietnamese Dong")
         .replace(/\(1\)/g, ". First, ")
@@ -1443,6 +1471,8 @@
           const styleDir =
             lang === "en"
               ? "Say in a warm, natural, smooth conversational interviewer voice"
+              : lang === "zh"
+              ? "Say in a warm, natural, standard Mandarin Chinese conversational interviewer voice"
               : "Say in a warm, natural, conversational Vietnamese interviewer voice with smooth human pacing";
           const resp = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent",
@@ -1587,6 +1617,8 @@
         "ai_asking",
         lang === "en"
           ? "✨ Preparing Studio Mentor voice..."
+          : lang === "zh"
+          ? "✨ AI 面试官正在生成专业语音..."
           : "✨ AI Mentor đang chuẩn bị giọng nói Studio...",
         true
       );
@@ -1595,19 +1627,33 @@
       const fullCacheKey = `${lang}|${voiceName}|${preparedScript}`;
       const isAlreadyCached = geminiTtsBlobCache.has(fullCacheKey);
 
-      // Nếu chưa có sẵn trong cache và câu dài > 160 ký tự: tách đôi tại câu đầu tiên & tải song song
+      // Nếu chưa có sẵn trong cache và câu dài: tách đôi tại câu đầu tiên & tải song song
       // -> Câu mở đầu ngắn phát ngay lập tức trong khi đoạn sau tải ngầm song song!
       let part1 = preparedScript;
       let part2 = "";
-      if (!isAlreadyCached && preparedScript.length > 160) {
-        const splitMatch = preparedScript.slice(35, 175).match(/[.!?]\s+/);
-        if (splitMatch && splitMatch.index !== undefined) {
-          const cutIdx = 35 + splitMatch.index + splitMatch[0].length;
-          const head = preparedScript.slice(0, cutIdx).trim();
-          const tail = preparedScript.slice(cutIdx).trim();
-          if (head.length >= 25 && tail.length >= 30) {
-            part1 = head;
-            part2 = tail;
+      const splitThreshold = lang === "zh" ? 80 : 160;
+      if (!isAlreadyCached && preparedScript.length > splitThreshold) {
+        if (lang === "zh") {
+          const splitMatchZh = preparedScript.slice(16, 95).match(/[。！？]+/);
+          if (splitMatchZh && splitMatchZh.index !== undefined) {
+            const cutIdx = 16 + splitMatchZh.index + splitMatchZh[0].length;
+            const head = preparedScript.slice(0, cutIdx).trim();
+            const tail = preparedScript.slice(cutIdx).trim();
+            if (head.length >= 12 && tail.length >= 16) {
+              part1 = head;
+              part2 = tail;
+            }
+          }
+        } else {
+          const splitMatch = preparedScript.slice(35, 175).match(/[.!?]\s+/);
+          if (splitMatch && splitMatch.index !== undefined) {
+            const cutIdx = 35 + splitMatch.index + splitMatch[0].length;
+            const head = preparedScript.slice(0, cutIdx).trim();
+            const tail = preparedScript.slice(cutIdx).trim();
+            if (head.length >= 25 && tail.length >= 30) {
+              part1 = head;
+              part2 = tail;
+            }
           }
         }
       }
@@ -1641,6 +1687,8 @@
           "ai_asking",
           lang === "en"
             ? "🎙️ AI Mentor is speaking (Studio Neural Voice)..."
+            : lang === "zh"
+            ? "🎙️ AI 面试官正在直接对话（Gemini Studio 原声）..."
             : "🎙️ AI Mentor đang trao đổi trực tiếp (Giọng Gemini Studio)...",
           true
         );
@@ -1673,6 +1721,8 @@
       "ai_asking",
       lang === "en"
         ? "AI Mentor is speaking (Speak over anytime to interrupt)..."
+        : lang === "zh"
+        ? "AI 面试官正在提问（开启打断模式时可随时插话作答）..."
         : "AI Mentor đang đặt câu hỏi (Có thể nói đè để ngắt lời nếu bật Ngắt lời)...",
       true
     );
@@ -1744,30 +1794,31 @@
   function playSeamlessAudioStream(fullText, lang, userRate, myToken, onComplete) {
     const rawSentences =
       String(fullText)
-        .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+        .match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/g)
         ?.map(s => s.trim())
         .filter(Boolean) || [String(fullText).trim()];
 
+    const maxChunkLen = lang === "zh" ? 85 : 175;
     const chunks = [];
     rawSentences.forEach(sent => {
-      if (sent.length <= 175) {
+      if (sent.length <= maxChunkLen) {
         chunks.push(sent);
       } else {
-        const parts = sent.split(/,\s+/);
+        const parts = sent.split(/[,，]\s*/);
         let acc = "";
         parts.forEach(p => {
           const candidate = acc ? `${acc}, ${p}` : p;
-          if (candidate.length <= 175) {
+          if (candidate.length <= maxChunkLen) {
             acc = candidate;
           } else {
             if (acc) chunks.push(acc);
-            if (p.length <= 175) {
+            if (p.length <= maxChunkLen) {
               acc = p;
             } else {
               const words = p.split(/\s+/);
               let wAcc = "";
               words.forEach(w => {
-                if ((wAcc + " " + w).trim().length <= 175) {
+                if ((wAcc + " " + w).trim().length <= maxChunkLen) {
                   wAcc = (wAcc + " " + w).trim();
                 } else {
                   if (wAcc) chunks.push(wAcc);

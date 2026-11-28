@@ -122,7 +122,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing text payload" });
     }
 
-    const lang = body.lang === "en" ? "en" : "vi";
+    const rawLang = String(body.lang || "vi").toLowerCase();
+    const lang = rawLang === "en" ? "en" : rawLang === "zh" ? "zh" : "vi";
     const level = String(body.level || "Junior");
     const voiceName = pickDefaultVoiceByLevel(level, String(body.voice || "").trim());
     const stylePrefix = buildStyleDirectorPrefix(lang, level);
